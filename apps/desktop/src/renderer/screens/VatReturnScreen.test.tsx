@@ -27,6 +27,8 @@ const VAT = {
 
 let finaliseCalled: Record<string, unknown> | null = null;
 let submitted = false;
+let hmrcConnected = false;
+let hmrcSubmitBody: Record<string, unknown> | null = null;
 
 function stubFetch(): void {
   const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -53,6 +55,13 @@ function stubFetch(): void {
     if (url.endsWith('/vat-submissions') && method === 'GET') {
       return json(200, submitted ? [{ id: 's-1', period_start: '2026-01-01', period_end: '2026-03-31', reference: 'HMRC-9', finalised_at: '2026-04-01T00:00:00Z', boxes: VAT }] : []);
     }
+    if (url.endsWith('/hmrc/status')) {
+      return json(200, { connected: hmrcConnected });
+    }
+    if (url.endsWith('/hmrc/submit') && method === 'POST') {
+      hmrcSubmitBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return json(200, { submission_id: 's-1', form_bundle_number: 'BUNDLE-1', charge_ref_number: 'X1', received_at: '2026-04-07T12:00:00Z' });
+    }
     return json(404, { detail: 'not found' });
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -78,6 +87,8 @@ function PreAuth(): JSX.Element {
 beforeEach(() => {
   finaliseCalled = null;
   submitted = false;
+  hmrcConnected = false;
+  hmrcSubmitBody = null;
   stubFetch();
 });
 
@@ -132,5 +143,28 @@ describe('VatReturnScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('Submitted returns')).toBeInTheDocument();
     });
+  });
+
+  it('submits a finalised return to HMRC when connected', async () => {
+    const user = userEvent.setup();
+    hmrcConnected = true;
+    submitted = true; // a finalised return already exists in history
+    vi.spyOn(window, 'prompt').mockReturnValue('18A1');
+    render(
+      <AuthProvider>
+        <PreAuth />
+      </AuthProvider>,
+    );
+
+    // Connected banner + a Submit to HMRC action on the finalised return.
+    await waitFor(() => {
+      expect(screen.getByText('Connected to HMRC ✓')).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: 'Submit to HMRC' }));
+
+    await waitFor(() => {
+      expect(hmrcSubmitBody).toEqual({ submission_id: 's-1', period_key: '18A1' });
+    });
+    expect(screen.getByText(/Receipt: BUNDLE-1/)).toBeInTheDocument();
   });
 });

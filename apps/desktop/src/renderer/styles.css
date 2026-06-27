@@ -980,6 +980,27 @@ body {
   margin-top: 1.75rem;
 }
 
+.hmrc-bar {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.hmrc-bar h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+}
+
+.hmrc-connected {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.vat-field-hint {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
 /* ============================================================
  * Generic UI kit (components/ui)
  * All controls use the theme variables so they re-skin with the theme.

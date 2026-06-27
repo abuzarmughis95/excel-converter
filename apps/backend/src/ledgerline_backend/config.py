@@ -106,6 +106,20 @@ class Settings(BaseSettings):
     openai_max_upload_bytes: int = 15 * 1024 * 1024
     """Maximum accepted statement file size (15 MB)."""
 
+    # -- HMRC Making Tax Digital (MTD) for VAT --
+    hmrc_base_url: str = "https://test-api.service.hmrc.gov.uk"
+    """HMRC API base URL. Defaults to the SANDBOX; set the production host
+    (https://api.service.hmrc.gov.uk) only once an app has passed HMRC review."""
+
+    hmrc_client_id: str | None = None
+    """OAuth2 client id from the HMRC Developer Hub. MTD is unavailable when unset."""
+
+    hmrc_client_secret: str | None = None
+    """OAuth2 client secret from the HMRC Developer Hub (environment only)."""
+
+    hmrc_redirect_uri: str = "http://localhost:8000/v1/hmrc/callback"
+    """OAuth2 redirect URI registered with the HMRC app."""
+
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
@@ -113,6 +127,15 @@ class Settings(BaseSettings):
     @property
     def ocr_enabled(self) -> bool:
         return self.openai_api_key is not None and self.openai_api_key.strip() != ""
+
+    @property
+    def hmrc_enabled(self) -> bool:
+        return bool(
+            self.hmrc_client_id
+            and self.hmrc_client_id.strip()
+            and self.hmrc_client_secret
+            and self.hmrc_client_secret.strip()
+        )
 
     @property
     def is_sqlite(self) -> bool:
