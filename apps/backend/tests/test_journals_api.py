@@ -189,3 +189,67 @@ def test_non_member_gets_404(client: TestClient, org_id: uuid.UUID) -> None:
     _register(client, org_id, "stranger@example.com")
     stranger = _auth(client, "stranger@example.com")
     assert client.get(f"/v1/companies/{cid}/journals", headers=stranger).status_code == 404
+
+
+def _capital_company(client: TestClient, org_id: uuid.UUID) -> tuple[dict[str, str], str, dict[str, str]]:
+    """A company with capital + sale + cost posted (profit of 700.00)."""
+    _register(client, org_id, "owner@example.com")
+    owner = _auth(client, "owner@example.com")
+    cid = client.post("/v1/companies", json={"name": "Co"}, headers=owner).json()["id"]
+    acc = {}
+    for code, name, atype in [
+        ("1200", "Bank", "asset"),
+        ("3000", "Capital", "equity"),
+        ("4000", "Sales", "income"),
+        ("5000", "Costs", "expense"),
+    ]:
+        acc[code] = client.post(
+            f"/v1/companies/{cid}/accounts",
+            json={"code": code, "name": name, "account_type": atype},
+            headers=owner,
+        ).json()["id"]
+
+    def _post(lines: list[dict[str, object]]) -> None:
+        j = client.post(
+            f"/v1/companies/{cid}/journals",
+            json={"journal_date": "2026-06-27", "lines": lines},
+            headers=owner,
+        ).json()
+        client.post(f"/v1/companies/{cid}/journals/{j['id']}/post", headers=owner)
+
+    _post([{"account_id": acc["1200"], "debit_minor": 50000}, {"account_id": acc["3000"], "credit_minor": 50000}])
+    _post([{"account_id": acc["1200"], "debit_minor": 100000}, {"account_id": acc["4000"], "credit_minor": 100000}])
+    _post([{"account_id": acc["5000"], "debit_minor": 30000}, {"account_id": acc["1200"], "credit_minor": 30000}])
+    return owner, cid, acc
+
+
+def test_profit_and_loss_report(client: TestClient, org_id: uuid.UUID) -> None:
+    owner, cid, _ = _capital_company(client, org_id)
+    resp = client.get(f"/v1/companies/{cid}/profit-and-loss", headers=owner)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total_income_minor"] == 100000
+    assert body["total_expenses_minor"] == 30000
+    assert body["net_profit_minor"] == 70000
+
+
+def test_balance_sheet_report(client: TestClient, org_id: uuid.UUID) -> None:
+    owner, cid, _ = _capital_company(client, org_id)
+    resp = client.get(f"/v1/companies/{cid}/balance-sheet", headers=owner)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total_assets_minor"] == 120000
+    assert body["total_liabilities_minor"] == 0
+    # Equity = capital 50k + retained earnings (profit) 70k.
+    assert body["total_equity_minor"] == 120000
+    assert body["retained_earnings_minor"] == 70000
+    # The accounting identity holds.
+    assert body["total_assets_minor"] == body["total_liabilities_minor"] + body["total_equity_minor"]
+
+
+def test_reports_require_membership(client: TestClient, org_id: uuid.UUID) -> None:
+    owner, cid, _ = _capital_company(client, org_id)
+    _register(client, org_id, "stranger@example.com")
+    stranger = _auth(client, "stranger@example.com")
+    assert client.get(f"/v1/companies/{cid}/profit-and-loss", headers=stranger).status_code == 404
+    assert client.get(f"/v1/companies/{cid}/balance-sheet", headers=stranger).status_code == 404

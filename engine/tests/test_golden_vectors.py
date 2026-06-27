@@ -18,6 +18,7 @@ from ledgerline_engine.account import Account, AccountType
 from ledgerline_engine.ledger import trial_balance
 from ledgerline_engine.money import Money
 from ledgerline_engine.posting import Posting, PostingLine
+from ledgerline_engine.reports import balance_sheet, profit_and_loss
 
 VECTORS_DIR = Path(__file__).resolve().parents[1] / "vectors"
 
@@ -70,7 +71,8 @@ def test_golden_vector(name: str, vector: dict[str, Any]) -> None:
             )
         postings.append(Posting.of(lines, base_currency=base_currency))
 
-    rows = trial_balance(list(accounts.values()), postings, base_currency=base_currency)
+    account_list = list(accounts.values())
+    rows = trial_balance(account_list, postings, base_currency=base_currency)
     actual = {
         r.account.code: (r.debit.minor_units, r.credit.minor_units) for r in rows
     }
@@ -78,3 +80,24 @@ def test_golden_vector(name: str, vector: dict[str, Any]) -> None:
         e["account"]: (e["debit"], e["credit"]) for e in vector["expected_trial_balance"]
     }
     assert actual == expected, f"Trial balance mismatch in vector {name}"
+
+    # Optional: P&L net profit expectation (minor units).
+    if "expected_net_profit" in vector:
+        pnl = profit_and_loss(account_list, postings, base_currency=base_currency)
+        assert pnl.net_profit is not None
+        assert pnl.net_profit.minor_units == vector["expected_net_profit"], (
+            f"Net profit mismatch in vector {name}"
+        )
+
+    # Optional: Balance Sheet totals expectation (minor units).
+    if "expected_balance_sheet" in vector:
+        bs = balance_sheet(account_list, postings, base_currency=base_currency)
+        exp = vector["expected_balance_sheet"]
+        assert bs.total_assets is not None
+        assert bs.total_liabilities is not None
+        assert bs.total_equity is not None
+        assert bs.total_assets.minor_units == exp["assets"], f"Assets mismatch in {name}"
+        assert bs.total_liabilities.minor_units == exp["liabilities"], (
+            f"Liabilities mismatch in {name}"
+        )
+        assert bs.total_equity.minor_units == exp["equity"], f"Equity mismatch in {name}"

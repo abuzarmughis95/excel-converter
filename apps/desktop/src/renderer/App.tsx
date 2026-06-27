@@ -10,6 +10,7 @@ import { ChartOfAccountsScreen } from './screens/ChartOfAccountsScreen.js';
 import { CompaniesScreen } from './screens/CompaniesScreen.js';
 import { DevicesScreen } from './screens/DevicesScreen.js';
 import { JournalEntryScreen } from './screens/JournalEntryScreen.js';
+import { ReportsScreen } from './screens/ReportsScreen.js';
 import { SpreadsheetScreen } from './screens/SpreadsheetScreen.js';
 import { StatementsScreen } from './screens/StatementsScreen.js';
 
@@ -21,6 +22,7 @@ const SCREENS = [
   'Journals',
   'Bank Statements',
   'Cashbook',
+  'Reports',
   'VAT',
   'Spreadsheet Bridge',
   'iXBRL Viewer',
@@ -72,6 +74,9 @@ function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   }
   if (screen === 'Cashbook') {
     return <CashbookScreen />;
+  }
+  if (screen === 'Reports') {
+    return <ReportsScreen />;
   }
   if (screen === 'Devices') {
     return <DevicesScreen />;

@@ -83,6 +83,30 @@ class TrialBalanceRowResponse(BaseModel):
     credit_minor: int
 
 
+class ReportLineResponse(BaseModel):
+    account_code: str
+    account_name: str
+    amount_minor: int
+
+
+class ProfitAndLossResponse(BaseModel):
+    income: list[ReportLineResponse]
+    expenses: list[ReportLineResponse]
+    total_income_minor: int
+    total_expenses_minor: int
+    net_profit_minor: int
+
+
+class BalanceSheetResponse(BaseModel):
+    assets: list[ReportLineResponse]
+    liabilities: list[ReportLineResponse]
+    equity: list[ReportLineResponse]
+    total_assets_minor: int
+    total_liabilities_minor: int
+    total_equity_minor: int
+    retained_earnings_minor: int
+
+
 def _journal_response(v: JournalView) -> JournalResponse:
     return JournalResponse(
         id=v.id,
@@ -250,3 +274,50 @@ def trial_balance(
         )
         for r in rows
     ]
+
+
+def _report_lines(lines: list) -> list[ReportLineResponse]:  # type: ignore[type-arg]
+    return [
+        ReportLineResponse(
+            account_code=line.account_code,
+            account_name=line.account_name,
+            amount_minor=line.amount_minor,
+        )
+        for line in lines
+    ]
+
+
+@router.get("/profit-and-loss", response_model=ProfitAndLossResponse)
+def profit_and_loss(
+    company_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+) -> ProfitAndLossResponse:
+    """Profit & Loss over posted journals, computed by the engine."""
+    pnl = ReportsService(session).profit_and_loss(company_id)
+    return ProfitAndLossResponse(
+        income=_report_lines(pnl.income),
+        expenses=_report_lines(pnl.expenses),
+        total_income_minor=pnl.total_income_minor,
+        total_expenses_minor=pnl.total_expenses_minor,
+        net_profit_minor=pnl.net_profit_minor,
+    )
+
+
+@router.get("/balance-sheet", response_model=BalanceSheetResponse)
+def balance_sheet(
+    company_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+) -> BalanceSheetResponse:
+    """Balance Sheet over posted journals, computed by the engine."""
+    bs = ReportsService(session).balance_sheet(company_id)
+    return BalanceSheetResponse(
+        assets=_report_lines(bs.assets),
+        liabilities=_report_lines(bs.liabilities),
+        equity=_report_lines(bs.equity),
+        total_assets_minor=bs.total_assets_minor,
+        total_liabilities_minor=bs.total_liabilities_minor,
+        total_equity_minor=bs.total_equity_minor,
+        retained_earnings_minor=bs.retained_earnings_minor,
+    )

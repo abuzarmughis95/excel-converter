@@ -1,0 +1,42 @@
+{
+  "name": "Full period: capital + sale + cost -> profit, balanced balance sheet",
+  "base_currency": "GBP",
+  "accounts": [
+    { "code": "1200", "name": "Bank", "type": "asset" },
+    { "code": "3000", "name": "Capital", "type": "equity" },
+    { "code": "4000", "name": "Sales", "type": "income" },
+    { "code": "5000", "name": "Costs", "type": "expense" }
+  ],
+  "postings": [
+    {
+      "lines": [
+        { "account": "1200", "amount": 50000, "base_amount": 50000, "debit": true },
+        { "account": "3000", "amount": 50000, "base_amount": 50000, "debit": false }
+      ]
+    },
+    {
+      "lines": [
+        { "account": "1200", "amount": 100000, "base_amount": 100000, "debit": true },
+        { "account": "4000", "amount": 100000, "base_amount": 100000, "debit": false }
+      ]
+    },
+    {
+      "lines": [
+        { "account": "5000", "amount": 30000, "base_amount": 30000, "debit": true },
+        { "account": "1200", "amount": 30000, "base_amount": 30000, "debit": false }
+      ]
+    }
+  ],
+  "expected_trial_balance": [
+    { "account": "1200", "debit": 120000, "credit": 0 },
+    { "account": "3000", "debit": 0, "credit": 50000 },
+    { "account": "4000", "debit": 0, "credit": 100000 },
+    { "account": "5000", "debit": 30000, "credit": 0 }
+  ],
+  "expected_net_profit": 70000,
+  "expected_balance_sheet": {
+    "assets": 120000,
+    "liabilities": 0,
+    "equity": 120000
+  }
+}

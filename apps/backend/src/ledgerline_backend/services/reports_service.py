@@ -1,14 +1,14 @@
-"""Reporting service — trial balance over posted journals (AC-09 start).
+"""Reporting service — trial balance, P&L, and balance sheet (AC-09).
 
-Builds engine objects from the company's posted journals and runs the engine's
-``trial_balance`` so the reported numbers are computed by the canonical core,
-not re-derived in the backend.
+Builds engine objects from the company's POSTED journals and runs the engine's
+report functions so the reported numbers are computed by the canonical core, not
+re-derived in the backend.
 """
 
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ledgerline_engine.api import (
     Account,
@@ -16,6 +16,8 @@ from ledgerline_engine.api import (
     Money,
     Posting,
     PostingLine,
+    balance_sheet,
+    profit_and_loss,
     trial_balance,
 )
 from sqlalchemy import select
@@ -40,16 +42,43 @@ class TrialBalanceRowView:
     credit_minor: int
 
 
+@dataclass(frozen=True)
+class ReportLineView:
+    account_code: str
+    account_name: str
+    amount_minor: int
+
+
+@dataclass(frozen=True)
+class ProfitAndLossView:
+    income: list[ReportLineView] = field(default_factory=list)
+    expenses: list[ReportLineView] = field(default_factory=list)
+    total_income_minor: int = 0
+    total_expenses_minor: int = 0
+    net_profit_minor: int = 0
+
+
+@dataclass(frozen=True)
+class BalanceSheetView:
+    assets: list[ReportLineView] = field(default_factory=list)
+    liabilities: list[ReportLineView] = field(default_factory=list)
+    equity: list[ReportLineView] = field(default_factory=list)
+    total_assets_minor: int = 0
+    total_liabilities_minor: int = 0
+    total_equity_minor: int = 0
+    retained_earnings_minor: int = 0
+
+
 class ReportsService:
     """Engine-backed reports for a company."""
 
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def trial_balance(self, company_id: uuid.UUID, *, base_currency: str = "GBP") -> list[
-        TrialBalanceRowView
-    ]:
-        """Compute the trial balance over POSTED journals, via the engine."""
+    def _build(
+        self, company_id: uuid.UUID, base_currency: str
+    ) -> tuple[list[Account], list[Posting]]:
+        """Build engine accounts + postings from the company's posted journals."""
         accounts = self._session.scalars(
             select(ChartOfAccount).where(ChartOfAccount.company_id == company_id)
         ).all()
@@ -94,10 +123,14 @@ class ReportsService:
                 )
             if engine_lines:
                 postings.append(Posting.of(engine_lines, base_currency=base_currency))
+        return list(engine_accounts.values()), postings
 
-        rows = trial_balance(
-            list(engine_accounts.values()), postings, base_currency=base_currency
-        )
+    def trial_balance(
+        self, company_id: uuid.UUID, *, base_currency: str = "GBP"
+    ) -> list[TrialBalanceRowView]:
+        """Compute the trial balance over POSTED journals, via the engine."""
+        accounts, postings = self._build(company_id, base_currency)
+        rows = trial_balance(accounts, postings, base_currency=base_currency)
         return [
             TrialBalanceRowView(
                 account_code=r.account.code,
@@ -107,3 +140,48 @@ class ReportsService:
             )
             for r in rows
         ]
+
+    def profit_and_loss(
+        self, company_id: uuid.UUID, *, base_currency: str = "GBP"
+    ) -> ProfitAndLossView:
+        """Compute the P&L over POSTED journals, via the engine."""
+        accounts, postings = self._build(company_id, base_currency)
+        pnl = profit_and_loss(accounts, postings, base_currency=base_currency)
+        return ProfitAndLossView(
+            income=[
+                ReportLineView(line.account.code, line.account.name, line.amount.minor_units)
+                for line in pnl.income
+            ],
+            expenses=[
+                ReportLineView(line.account.code, line.account.name, line.amount.minor_units)
+                for line in pnl.expenses
+            ],
+            total_income_minor=pnl.total_income.minor_units if pnl.total_income else 0,
+            total_expenses_minor=pnl.total_expenses.minor_units if pnl.total_expenses else 0,
+            net_profit_minor=pnl.net_profit.minor_units if pnl.net_profit else 0,
+        )
+
+    def balance_sheet(
+        self, company_id: uuid.UUID, *, base_currency: str = "GBP"
+    ) -> BalanceSheetView:
+        """Compute the balance sheet over POSTED journals, via the engine."""
+        accounts, postings = self._build(company_id, base_currency)
+        bs = balance_sheet(accounts, postings, base_currency=base_currency)
+        return BalanceSheetView(
+            assets=[
+                ReportLineView(line.account.code, line.account.name, line.amount.minor_units)
+                for line in bs.assets
+            ],
+            liabilities=[
+                ReportLineView(line.account.code, line.account.name, line.amount.minor_units)
+                for line in bs.liabilities
+            ],
+            equity=[
+                ReportLineView(line.account.code, line.account.name, line.amount.minor_units)
+                for line in bs.equity
+            ],
+            total_assets_minor=bs.total_assets.minor_units if bs.total_assets else 0,
+            total_liabilities_minor=bs.total_liabilities.minor_units if bs.total_liabilities else 0,
+            total_equity_minor=bs.total_equity.minor_units if bs.total_equity else 0,
+            retained_earnings_minor=bs.retained_earnings.minor_units if bs.retained_earnings else 0,
+        )

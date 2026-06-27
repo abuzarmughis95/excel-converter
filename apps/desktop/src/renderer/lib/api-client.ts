@@ -24,10 +24,12 @@ import type {
   CreateJournalRequest,
   DeviceResponse,
   ExtractStatementResponse,
+  BalanceSheetResponse,
   ImportLineModel,
   ImportResultResponse,
   JournalResponse,
   LoginRequest,
+  ProfitAndLossResponse,
   RegisterDeviceRequest,
   RegisterDeviceResponse,
   SaveWorkbookRequest,
@@ -258,6 +260,22 @@ export class ApiClient {
     return this.request<TrialBalanceRow[]>({
       method: 'GET',
       path: `/companies/${companyId}/trial-balance`,
+      auth: true,
+    });
+  }
+
+  profitAndLoss(companyId: string): Promise<ProfitAndLossResponse> {
+    return this.request<ProfitAndLossResponse>({
+      method: 'GET',
+      path: `/companies/${companyId}/profit-and-loss`,
+      auth: true,
+    });
+  }
+
+  balanceSheet(companyId: string): Promise<BalanceSheetResponse> {
+    return this.request<BalanceSheetResponse>({
+      method: 'GET',
+      path: `/companies/${companyId}/balance-sheet`,
       auth: true,
     });
   }

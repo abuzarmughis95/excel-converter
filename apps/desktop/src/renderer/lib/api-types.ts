@@ -128,6 +128,30 @@ export interface TrialBalanceRow {
   credit_minor: number;
 }
 
+export interface ReportLine {
+  account_code: string;
+  account_name: string;
+  amount_minor: number;
+}
+
+export interface ProfitAndLossResponse {
+  income: ReportLine[];
+  expenses: ReportLine[];
+  total_income_minor: number;
+  total_expenses_minor: number;
+  net_profit_minor: number;
+}
+
+export interface BalanceSheetResponse {
+  assets: ReportLine[];
+  liabilities: ReportLine[];
+  equity: ReportLine[];
+  total_assets_minor: number;
+  total_liabilities_minor: number;
+  total_equity_minor: number;
+  retained_earnings_minor: number;
+}
+
 export interface SheetData {
   name: string;
   sort_order: number;
