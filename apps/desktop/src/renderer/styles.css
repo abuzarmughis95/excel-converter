@@ -274,15 +274,7 @@ body {
   margin-bottom: 1rem;
 }
 
-.devices-toolbar button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font: inherit;
-  cursor: pointer;
-}
+/* Buttons here use the .ui-button kit; no per-screen colour overrides. */
 
 .devices-table {
   width: 100%;
@@ -297,15 +289,7 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
-.devices-table button {
-  background: transparent;
-  border: 1px solid var(--color-danger);
-  color: var(--color-danger);
-  border-radius: 6px;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-  font: inherit;
-}
+/* Row action buttons use the .ui-button kit (danger variant for destructive). */
 
 /* -- Companies screen -- */
 .app-active-company {
@@ -339,15 +323,7 @@ body {
   min-width: 220px;
 }
 
-.company-create button {
-  padding: 0.55rem 1rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font: inherit;
-  cursor: pointer;
-}
+/* Submit button uses the .ui-button kit. */
 
 .company-list {
   list-style: none;
@@ -477,21 +453,9 @@ body {
   font-weight: 600;
 }
 
+/* .journal-post keeps only its layout; colour comes from .ui-button. */
 .journal-post {
   margin-left: auto;
-  padding: 0.55rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.journal-post:disabled {
-  opacity: 0.45;
-  cursor: default;
 }
 
 .journal-lower {
@@ -544,22 +508,9 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.sheet-toolbar button {
-  padding: 0.4rem 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
+/* Toolbar buttons use the .ui-button kit. */
 
-.sheet-save {
-  background: var(--color-accent) !important;
-  border-color: var(--color-accent) !important;
-  color: var(--color-on-accent) !important;
-  font-weight: 600;
-}
+/* .sheet-save uses the .ui-button primary colour; no override needed. */
 
 .sheet-shortcut {
   font-size: 0.75rem;
@@ -767,15 +718,7 @@ body {
 }
 
 .statements-import button,
-.cashbook-screen .devices-table button {
-  padding: 0.45rem 0.9rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font: inherit;
-  cursor: pointer;
-}
+/* Cashbook table Post button uses the .ui-button kit. */
 
 /* -- Cashbook -- */
 .cashbook-banks {

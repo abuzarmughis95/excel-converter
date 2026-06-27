@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
-import { errorMessage } from '../lib/errors.js';
+import { Button } from '../components/ui/index.js';
 import type { DeviceResponse } from '../lib/api-types.js';
+import { errorMessage } from '../lib/errors.js';
 
 /** Detect the current platform for the device record. */
 function currentPlatform(): string {
@@ -96,9 +97,9 @@ export function DevicesScreen(): JSX.Element {
   return (
     <section aria-live="polite">
       <div className="devices-toolbar">
-        <button type="button" onClick={() => void onRegister()} disabled={busy}>
+        <Button onClick={() => void onRegister()} disabled={busy}>
           Register this device
-        </button>
+        </Button>
       </div>
 
       {error !== null && (
@@ -131,9 +132,9 @@ export function DevicesScreen(): JSX.Element {
                 <td>{d.revoked ? 'Revoked' : 'Active'}</td>
                 <td>
                   {!d.revoked && (
-                    <button type="button" onClick={() => void onRevoke(d.id)} disabled={busy}>
+                    <Button variant="danger" onClick={() => void onRevoke(d.id)} disabled={busy}>
                       Revoke
-                    </button>
+                    </Button>
                   )}
                 </td>
               </tr>

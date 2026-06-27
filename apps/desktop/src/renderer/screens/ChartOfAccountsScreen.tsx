@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'reac
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
-import { errorMessage } from '../lib/errors.js';
+import { Button } from '../components/ui/index.js';
 import type { AccountResponse } from '../lib/api-types.js';
+import { errorMessage } from '../lib/errors.js';
 
 const ACCOUNT_TYPES = ['asset', 'liability', 'equity', 'income', 'expense'] as const;
 
@@ -127,9 +128,9 @@ export function ChartOfAccountsScreen(): JSX.Element {
             </option>
           ))}
         </select>
-        <button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy}>
           Add account
-        </button>
+        </Button>
       </form>
 
       {error !== null && (
@@ -164,9 +165,13 @@ export function ChartOfAccountsScreen(): JSX.Element {
                 <td>{a.is_active ? 'Active' : 'Inactive'}</td>
                 <td>
                   {a.is_active && (
-                    <button type="button" onClick={() => void onDeactivate(a.id)} disabled={busy}>
+                    <Button
+                      variant="danger"
+                      onClick={() => void onDeactivate(a.id)}
+                      disabled={busy}
+                    >
                       Deactivate
-                    </button>
+                    </Button>
                   )}
                 </td>
               </tr>

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { Button } from '../components/ui/index.js';
 import { ApiError } from '../lib/api-client.js';
 import { errorMessage } from '../lib/errors.js';
 import type { AccountResponse, JournalResponse, TrialBalanceRow } from '../lib/api-types.js';
@@ -293,9 +294,9 @@ export function JournalEntryScreen(): JSX.Element {
         <tfoot>
           <tr>
             <td>
-              <button type="button" onClick={addRow}>
+              <Button variant="secondary" onClick={addRow}>
                 + Add row
-              </button>
+              </Button>
             </td>
             <td className="num">{formatMinor(totals.debit)}</td>
             <td className="num">{formatMinor(totals.credit)}</td>
@@ -314,9 +315,13 @@ export function JournalEntryScreen(): JSX.Element {
               : 'Enter valid amounts'}
           </span>
         )}
-        <button type="button" className="journal-post" onClick={() => void onPost()} disabled={!totals.balanced || busy}>
+        <Button
+          className="journal-post"
+          onClick={() => void onPost()}
+          disabled={!totals.balanced || busy}
+        >
           {busy ? 'Posting…' : 'Post journal'}
-        </button>
+        </Button>
       </div>
 
       {error !== null && (
@@ -340,20 +345,12 @@ export function JournalEntryScreen(): JSX.Element {
                   </span>
                   {j.is_posted && (
                     <span className="journal-actions">
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void onUnpost(j.id)}
-                      >
+                      <Button variant="secondary" disabled={busy} onClick={() => void onUnpost(j.id)}>
                         Unpost
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void onReverse(j.id)}
-                      >
+                      </Button>
+                      <Button variant="secondary" disabled={busy} onClick={() => void onReverse(j.id)}>
                         Reverse
-                      </button>
+                      </Button>
                     </span>
                   )}
                 </li>

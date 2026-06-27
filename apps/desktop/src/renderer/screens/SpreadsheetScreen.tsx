@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { Button } from '../components/ui/index.js';
 import { ApiError } from '../lib/api-client.js';
 import { errorMessage } from '../lib/errors.js';
 import type { SheetData } from '../lib/api-types.js';
@@ -260,12 +261,12 @@ export function SpreadsheetScreen(): JSX.Element {
   return (
     <section aria-live="polite" className="sheet-screen">
       <div className="sheet-toolbar">
-        <button type="button" onClick={() => void save()} disabled={saving} className="sheet-save">
+        <Button onClick={() => void save()} disabled={saving} className="sheet-save">
           {saving ? 'Saving…' : 'Save'} <span className="sheet-shortcut">Ctrl+S</span>
-        </button>
-        <button type="button" onClick={addRow}>
+        </Button>
+        <Button variant="secondary" onClick={addRow}>
           + Row
-        </button>
+        </Button>
         <input
           ref={pdfInput}
           type="file"
@@ -279,15 +280,15 @@ export function SpreadsheetScreen(): JSX.Element {
             e.target.value = '';
           }}
         />
-        <button
-          type="button"
+        <Button
+          variant="secondary"
           onClick={() => {
             pdfInput.current?.click();
           }}
           disabled={importing}
         >
           {importing ? 'Importing…' : 'Import PDF'}
-        </button>
+        </Button>
         <span className="sheet-status">
           {error !== null ? (
             <span className="unbalanced">{error}</span>
