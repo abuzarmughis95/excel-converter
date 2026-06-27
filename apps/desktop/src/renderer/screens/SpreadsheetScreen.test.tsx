@@ -64,6 +64,19 @@ function stubFetch(): void {
         sheets: [{ name: 'Sheet1', sort_order: 0, cells: [['hello']] }],
       });
     }
+    if (url.endsWith('/statements/extract') && method === 'POST') {
+      return json(200, {
+        currency: 'GBP',
+        reconciled: true,
+        summary: {
+          account_name: 'ACME', account_number: '1', sort_code: '1', period_start: null,
+          period_end: null, opening_balance_minor: 0, closing_balance_minor: 0,
+        },
+        lines: [
+          { date: '2026-06-27', description: 'CARD PAYMENT', money_out_minor: 5000, money_in_minor: 0, balance_minor: 95000 },
+        ],
+      });
+    }
     return json(404, { detail: 'not found' });
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -137,5 +150,35 @@ describe('SpreadsheetScreen', () => {
 
     await user.click(screen.getByRole('button', { name: 'Add sheet' }));
     expect(screen.getByRole('button', { name: 'Sheet2' })).toBeInTheDocument();
+  });
+
+  it('imports a PDF into a new sheet with the extracted rows', async () => {
+    const user = userEvent.setup();
+    render(
+      <AuthProvider>
+        <PreAuth />
+      </AuthProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Sheet1' })).toBeInTheDocument();
+    });
+
+    const file = new File([new Uint8Array([1, 2, 3])], 'june-statement.pdf', {
+      type: 'application/pdf',
+    });
+    const input = document.querySelector('input[type="file"]');
+    expect(input).not.toBeNull();
+    await user.upload(input as HTMLInputElement, file);
+
+    // A new tab named after the file appears, becomes active, and the extracted
+    // transaction lands in the grid.
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'june-statement' })).toBeInTheDocument();
+    });
+    const cells = screen.getAllByRole('textbox');
+    const values = cells.map((c) => (c as HTMLInputElement).value);
+    expect(values).toContain('Description');
+    expect(values).toContain('CARD PAYMENT');
+    expect(values).toContain('50.00');
   });
 });

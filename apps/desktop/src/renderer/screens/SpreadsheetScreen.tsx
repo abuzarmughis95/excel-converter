@@ -76,8 +76,10 @@ export function SpreadsheetScreen(): JSX.Element {
   const [active, setActive] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pdfInput = useRef<HTMLInputElement>(null);
   // Keep the latest state available to the keydown handler without re-binding.
   const stateRef = useRef<{ companyId: string | null; sheets: EditSheet[] }>({
     companyId,
@@ -198,6 +200,62 @@ export function SpreadsheetScreen(): JSX.Element {
     setDirty(true);
   }
 
+  /** Format integer minor units as a plain "1234.56" major-unit string. */
+  function fromMinor(minor: number): string {
+    if (minor === 0) {
+      return '';
+    }
+    const sign = minor < 0 ? '-' : '';
+    const abs = Math.abs(minor);
+    return `${sign}${Math.trunc(abs / 100).toString()}.${(abs % 100).toString().padStart(2, '0')}`;
+  }
+
+  /** Upload a PDF, extract it, and drop the rows into a NEW editable sheet. */
+  async function importPdf(file: File): Promise<void> {
+    if (companyId === null) {
+      return;
+    }
+    setImporting(true);
+    setError(null);
+    try {
+      const extracted = await api.extractStatement(companyId, file);
+      const header = ['Date', 'Description', 'Money out', 'Money in', 'Balance'];
+      const rows = extracted.lines.map((ln) => [
+        ln.date ?? '',
+        ln.description,
+        fromMinor(ln.money_out_minor),
+        fromMinor(ln.money_in_minor),
+        ln.balance_minor !== null ? fromMinor(ln.balance_minor) : '',
+      ]);
+      // Pad to a minimum grid so the user has room to edit.
+      const cells = [header, ...rows];
+      while (cells.length < DEFAULT_ROWS) {
+        cells.push(Array.from({ length: header.length }, () => ''));
+      }
+      // Derive a unique sheet name from the file.
+      const base = file.name.replace(/\.pdf$/i, '').slice(0, 40) || 'Imported';
+      const existing = new Set(sheets.map((s) => s.name));
+      let name = base;
+      let suffix = 2;
+      while (existing.has(name)) {
+        name = `${base} ${String(suffix)}`;
+        suffix += 1;
+      }
+      setSheets((prev) => [...prev, { name, cells }]);
+      setActive(sheets.length);
+      setDirty(true);
+      setStatus(`Imported ${String(extracted.lines.length)} rows into "${name}". Press Ctrl+S to save.`);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 503) {
+        setError('PDF import is not configured on the server (no OpenAI API key).');
+      } else {
+        setError(err instanceof ApiError ? err.message : 'Failed to import the PDF.');
+      }
+    } finally {
+      setImporting(false);
+    }
+  }
+
   if (activeCompany === null) {
     return (
       <section aria-live="polite">
@@ -216,6 +274,28 @@ export function SpreadsheetScreen(): JSX.Element {
         </button>
         <button type="button" onClick={addRow}>
           + Row
+        </button>
+        <input
+          ref={pdfInput}
+          type="file"
+          accept="application/pdf"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f !== undefined) {
+              void importPdf(f);
+            }
+            e.target.value = '';
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => {
+            pdfInput.current?.click();
+          }}
+          disabled={importing}
+        >
+          {importing ? 'Importing…' : 'Import PDF'}
         </button>
         <span className="sheet-status">
           {error !== null ? (
