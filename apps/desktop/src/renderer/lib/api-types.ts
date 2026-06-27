@@ -127,3 +127,19 @@ export interface TrialBalanceRow {
   debit_minor: number;
   credit_minor: number;
 }
+
+export interface SheetData {
+  name: string;
+  sort_order: number;
+  cells: string[][];
+}
+
+export interface WorkbookResponse {
+  id: string;
+  name: string;
+  sheets: SheetData[];
+}
+
+export interface SaveWorkbookRequest {
+  sheets: { name: string; cells: string[][] }[];
+}

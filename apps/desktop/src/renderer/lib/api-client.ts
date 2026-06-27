@@ -24,9 +24,11 @@ import type {
   LoginRequest,
   RegisterDeviceRequest,
   RegisterDeviceResponse,
+  SaveWorkbookRequest,
   TokenResponse,
   TrialBalanceRow,
   UserResponse,
+  WorkbookResponse,
 } from './api-types.js';
 
 export class ApiError extends Error {
@@ -250,6 +252,25 @@ export class ApiClient {
     return this.request<TrialBalanceRow[]>({
       method: 'GET',
       path: `/companies/${companyId}/trial-balance`,
+      auth: true,
+    });
+  }
+
+  // -- workbook (spreadsheet) -------------------------------------------
+
+  loadWorkbook(companyId: string): Promise<WorkbookResponse> {
+    return this.request<WorkbookResponse>({
+      method: 'GET',
+      path: `/companies/${companyId}/workbook`,
+      auth: true,
+    });
+  }
+
+  saveWorkbook(companyId: string, body: SaveWorkbookRequest): Promise<WorkbookResponse> {
+    return this.request<WorkbookResponse>({
+      method: 'PUT',
+      path: `/companies/${companyId}/workbook`,
+      body,
       auth: true,
     });
   }

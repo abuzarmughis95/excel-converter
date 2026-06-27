@@ -429,3 +429,147 @@ body {
 .devices-table td.num {
   text-align: right;
 }
+
+/* -- Spreadsheet -- */
+.sheet-screen {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+}
+
+.sheet-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.sheet-toolbar button {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-surface);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sheet-save {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.sheet-shortcut {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-left: 0.35rem;
+}
+
+.sheet-status {
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+
+.sheet-grid-wrap {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid var(--color-surface);
+  border-radius: 6px;
+}
+
+.sheet-grid {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.sheet-grid th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  min-width: 90px;
+  z-index: 1;
+}
+
+.sheet-grid .sheet-corner,
+.sheet-grid .sheet-rownum {
+  position: sticky;
+  left: 0;
+  background: var(--color-surface);
+  min-width: 40px;
+  text-align: center;
+  z-index: 2;
+}
+
+.sheet-grid td {
+  padding: 0;
+  border: 1px solid var(--color-surface);
+}
+
+.sheet-grid td input {
+  width: 100%;
+  min-width: 90px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  padding: 0.3rem 0.5rem;
+  font: inherit;
+}
+
+.sheet-grid td input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  background: var(--color-bg);
+}
+
+.sheet-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sheet-tab {
+  display: flex;
+  align-items: center;
+  background: var(--color-surface);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+
+.sheet-tab.active {
+  background: var(--color-accent);
+}
+
+.sheet-tab > button:first-child {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+.sheet-tab-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0 0.5rem 0 0;
+}
+
+.sheet-tab-add {
+  background: var(--color-surface);
+  border: none;
+  color: inherit;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  font-size: 1rem;
+}

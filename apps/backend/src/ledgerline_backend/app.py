@@ -14,7 +14,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 
 from ledgerline_backend import __version__
-from ledgerline_backend.api import auth, coa, companies, devices, journals, meta
+from ledgerline_backend.api import (
+    auth,
+    coa,
+    companies,
+    devices,
+    journals,
+    meta,
+    workbooks,
+)
 from ledgerline_backend.config import Settings, get_settings
 from ledgerline_backend.db.session import create_db_engine, create_session_factory
 from ledgerline_backend.logging import configure_logging, get_logger
@@ -75,6 +83,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(companies.router, prefix="/v1")
     app.include_router(coa.router, prefix="/v1")
     app.include_router(journals.router, prefix="/v1")
+    app.include_router(workbooks.router, prefix="/v1")
 
     return app
 
