@@ -168,3 +168,43 @@ export interface ExtractStatementResponse {
   summary: StatementSummary;
   lines: StatementLine[];
 }
+
+export interface BankAccountResponse {
+  id: string;
+  name: string;
+  gl_account_id: string;
+  account_number: string | null;
+  sort_code: string | null;
+  currency: string;
+}
+
+export interface CreateBankAccountRequest {
+  name: string;
+  gl_account_id: string;
+  account_number?: string | null;
+  sort_code?: string | null;
+  currency?: string;
+}
+
+export interface ImportLineModel {
+  line_date?: string | null;
+  description?: string;
+  money_out_minor?: number;
+  money_in_minor?: number;
+  balance_minor?: number | null;
+}
+
+export interface ImportResultResponse {
+  imported: number;
+  duplicates: number;
+}
+
+export interface BankStatementLineResponse {
+  id: string;
+  line_date: string | null;
+  description: string;
+  money_out_minor: number;
+  money_in_minor: number;
+  balance_minor: number | null;
+  is_posted: boolean;
+}

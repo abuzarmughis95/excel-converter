@@ -1,9 +1,9 @@
-import { useRef, useState, type JSX } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { ApiError } from '../lib/api-client.js';
-import type { ExtractStatementResponse } from '../lib/api-types.js';
+import type { BankAccountResponse, ExtractStatementResponse } from '../lib/api-types.js';
 
 function formatMinor(minor: number | null): string {
   if (minor === null) {
@@ -31,6 +31,58 @@ export function StatementsScreen(): JSX.Element {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [banks, setBanks] = useState<BankAccountResponse[]>([]);
+  const [importBank, setImportBank] = useState('');
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (companyId === null) {
+      return;
+    }
+    api
+      .listBankAccounts(companyId)
+      .then((bs) => {
+        setBanks(bs);
+        const first = bs[0];
+        if (first !== undefined) {
+          setImportBank(first.id);
+        }
+      })
+      .catch(() => {
+        /* non-fatal; import section simply hidden */
+      });
+  }, [api, companyId]);
+
+  async function onImport(): Promise<void> {
+    if (companyId === null || result === null || importBank === '') {
+      return;
+    }
+    setBusy(true);
+    setImportMsg(null);
+    setError(null);
+    try {
+      const res = await api.importStatementLines(
+        companyId,
+        importBank,
+        result.lines.map((ln) => ({
+          line_date: ln.date,
+          description: ln.description,
+          money_out_minor: ln.money_out_minor,
+          money_in_minor: ln.money_in_minor,
+          balance_minor: ln.balance_minor,
+        })),
+      );
+      setImportMsg(
+        `Imported ${String(res.imported)} lines` +
+          (res.duplicates > 0 ? ` (${String(res.duplicates)} duplicates skipped)` : '') +
+          '. Post them to the ledger in Cashbook.',
+      );
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to import lines.');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function onFile(file: File): Promise<void> {
     if (companyId === null) {
@@ -154,6 +206,38 @@ export function StatementsScreen(): JSX.Element {
             </tbody>
           </table>
           <p className="statements-count">{result.lines.length} transactions extracted.</p>
+
+          {result.lines.length > 0 && (
+            <div className="statements-import">
+              {banks.length === 0 ? (
+                <p>Create a bank account (Cashbook) to import these lines.</p>
+              ) : (
+                <>
+                  <select
+                    value={importBank}
+                    onChange={(e) => {
+                      setImportBank(e.target.value);
+                    }}
+                    aria-label="Import into bank account"
+                  >
+                    {banks.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="button" onClick={() => void onImport()} disabled={busy}>
+                    Import {result.lines.length} lines to cashbook
+                  </button>
+                </>
+              )}
+              {importMsg !== null && (
+                <p className="balanced" role="status">
+                  {importMsg}
+                </p>
+              )}
+            </div>
+          )}
         </>
       )}
     </section>

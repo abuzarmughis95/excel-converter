@@ -17,10 +17,15 @@ import type {
   CompanyResponse,
   CreateCompanyRequest,
   AccountResponse,
+  BankAccountResponse,
+  BankStatementLineResponse,
   CreateAccountRequest,
+  CreateBankAccountRequest,
   CreateJournalRequest,
   DeviceResponse,
   ExtractStatementResponse,
+  ImportLineModel,
+  ImportResultResponse,
   JournalResponse,
   LoginRequest,
   RegisterDeviceRequest,
@@ -301,5 +306,65 @@ export class ApiClient {
       throw new ApiError(response.status, detail, payload);
     }
     return payload as ExtractStatementResponse;
+  }
+
+  // -- cashbook (bank accounts, import, post) ---------------------------
+
+  listBankAccounts(companyId: string): Promise<BankAccountResponse[]> {
+    return this.request<BankAccountResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/bank-accounts`,
+      auth: true,
+    });
+  }
+
+  createBankAccount(
+    companyId: string,
+    body: CreateBankAccountRequest,
+  ): Promise<BankAccountResponse> {
+    return this.request<BankAccountResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/bank-accounts`,
+      body,
+      auth: true,
+    });
+  }
+
+  importStatementLines(
+    companyId: string,
+    bankAccountId: string,
+    lines: ImportLineModel[],
+  ): Promise<ImportResultResponse> {
+    return this.request<ImportResultResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/import`,
+      body: { lines },
+      auth: true,
+    });
+  }
+
+  listStatementLines(
+    companyId: string,
+    bankAccountId: string,
+  ): Promise<BankStatementLineResponse[]> {
+    return this.request<BankStatementLineResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/lines`,
+      auth: true,
+    });
+  }
+
+  postStatementLine(
+    companyId: string,
+    bankAccountId: string,
+    lineId: string,
+    contraAccountId: string,
+  ): Promise<{ journal_id: string }> {
+    return this.request<{ journal_id: string }>({
+      method: 'POST',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/lines/${lineId}/post`,
+      body: { contra_account_id: contraAccountId },
+      auth: true,
+    });
   }
 }

@@ -16,6 +16,7 @@ from sqlalchemy import Engine
 from ledgerline_backend import __version__
 from ledgerline_backend.api import (
     auth,
+    cashbook,
     coa,
     companies,
     devices,
@@ -86,6 +87,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(journals.router, prefix="/v1")
     app.include_router(workbooks.router, prefix="/v1")
     app.include_router(statements.router, prefix="/v1")
+    app.include_router(cashbook.router, prefix="/v1")
 
     return app
 
