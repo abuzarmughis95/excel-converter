@@ -277,6 +277,45 @@ def unpost_journal(
     return _journal_response(journal)
 
 
+class ReverseRequest(BaseModel):
+    reason: str = Field(min_length=1, max_length=1024)
+    reversal_date: dt.date | None = None
+
+
+@router.post(
+    "/journals/{journal_id}/reverse",
+    response_model=JournalResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def reverse_journal(
+    company_id: uuid.UUID,
+    journal_id: uuid.UUID,
+    body: ReverseRequest,
+    current_user: CurrentUserDep,
+    membership: WriteMembership,
+    session: SessionDep,
+) -> JournalResponse:
+    """Reverse a posted journal by posting a mirror-image entry (bookkeeper+).
+
+    This is the correct correction route for a locked period: the reversal lands
+    in a postable period and the original is left intact. Returns the new
+    reversing journal.
+    """
+    try:
+        reversal = PostingService(session).reverse(
+            actor_id=current_user.id,
+            company_id=company_id,
+            journal_id=journal_id,
+            reversal_date=body.reversal_date,
+            reason=body.reason,
+        )
+    except PeriodLockedError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except (JournalNotFoundError, NotPostedError, InvalidJournalError) as exc:
+        _raise_journal_error(exc)
+    return _journal_response(reversal)
+
+
 @router.get("/trial-balance", response_model=list[TrialBalanceRowResponse])
 def trial_balance(
     company_id: uuid.UUID,

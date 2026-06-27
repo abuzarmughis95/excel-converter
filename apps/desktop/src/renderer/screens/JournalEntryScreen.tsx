@@ -148,6 +148,55 @@ export function JournalEntryScreen(): JSX.Element {
     }
   }
 
+  async function onUnpost(journalId: string): Promise<void> {
+    if (companyId === null) {
+      return;
+    }
+    const reason = window.prompt('Reason for unposting this journal?');
+    if (reason === null || reason.trim() === '') {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.unpostJournal(companyId, journalId, reason.trim());
+      await reload();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to unpost.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onReverse(journalId: string): Promise<void> {
+    if (companyId === null) {
+      return;
+    }
+    const reason = window.prompt('Reason for reversing this journal?');
+    if (reason === null || reason.trim() === '') {
+      return;
+    }
+    const when = window.prompt('Reversal date (YYYY-MM-DD), or leave blank for the original date.');
+    if (when === null) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.reverseJournal(
+        companyId,
+        journalId,
+        reason.trim(),
+        when.trim() === '' ? null : when.trim(),
+      );
+      await reload();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to reverse.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (activeCompany === null) {
     return (
       <section aria-live="polite">
@@ -301,11 +350,31 @@ export function JournalEntryScreen(): JSX.Element {
           {journals.length === 0 ? (
             <p>No journals yet.</p>
           ) : (
-            <ul>
+            <ul className="journal-list">
               {journals.slice(0, 8).map((j) => (
                 <li key={j.id}>
-                  {j.journal_date} · {j.narrative ?? j.journal_type} ·{' '}
-                  {j.is_posted ? 'Posted' : 'Draft'}
+                  <span>
+                    {j.journal_date} · {j.narrative ?? j.journal_type} ·{' '}
+                    {j.is_posted ? 'Posted' : 'Draft'}
+                  </span>
+                  {j.is_posted && (
+                    <span className="journal-actions">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void onUnpost(j.id)}
+                      >
+                        Unpost
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void onReverse(j.id)}
+                      >
+                        Reverse
+                      </button>
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

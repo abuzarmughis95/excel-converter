@@ -261,6 +261,33 @@ export class ApiClient {
     });
   }
 
+  unpostJournal(
+    companyId: string,
+    journalId: string,
+    reason: string,
+  ): Promise<JournalResponse> {
+    return this.request<JournalResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/journals/${journalId}/unpost`,
+      body: { reason },
+      auth: true,
+    });
+  }
+
+  reverseJournal(
+    companyId: string,
+    journalId: string,
+    reason: string,
+    reversalDate: string | null,
+  ): Promise<JournalResponse> {
+    return this.request<JournalResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/journals/${journalId}/reverse`,
+      body: { reason, reversal_date: reversalDate },
+      auth: true,
+    });
+  }
+
   trialBalance(companyId: string): Promise<TrialBalanceRow[]> {
     return this.request<TrialBalanceRow[]>({
       method: 'GET',

@@ -305,6 +305,65 @@ class PostingService:
         )
         return self._view(journal)
 
+    def reverse(
+        self,
+        *,
+        actor_id: uuid.UUID,
+        company_id: uuid.UUID,
+        journal_id: uuid.UUID,
+        reversal_date: dt.date | None = None,
+        reason: str,
+    ) -> JournalView:
+        """Create and post a reversing journal that cancels a posted journal.
+
+        The reversal mirrors the original with debits and credits swapped. It is
+        dated ``reversal_date`` (default: the original's date) and must itself
+        land in a postable period — this is the correct way to fix an error in a
+        locked period, leaving the original untouched and fully audited.
+        """
+        if not reason.strip():
+            raise InvalidJournalError("A reversal requires a reason")
+        original = self._get(company_id, journal_id)
+        if not original.is_posted:
+            raise NotPostedError
+        lines = self._lines(journal_id)
+        # Swap debit and credit on every line to reverse the entry.
+        reversed_inputs = [
+            LineInput(
+                account_id=ln.account_id,
+                debit_minor=ln.credit_minor,
+                credit_minor=ln.debit_minor,
+                narrative=ln.narrative,
+                vat_code=ln.vat_code,
+                vat_minor=ln.vat_minor,
+            )
+            for ln in lines
+        ]
+        ref = f"REV:{original.reference}" if original.reference else "REV"
+        created = self.create(
+            actor_id=actor_id,
+            company_id=company_id,
+            journal_date=reversal_date or original.journal_date,
+            lines=reversed_inputs,
+            currency=original.currency,
+            reference=ref[:64],
+            narrative=f"Reversal of {original.id}: {reason}"[:1024],
+            journal_type="reversal",
+        )
+        posted = self.post(
+            actor_id=actor_id, company_id=company_id, journal_id=created.id
+        )
+        record_audit(
+            self._session,
+            entity_type="journal",
+            entity_id=original.id,
+            action="reversed",
+            actor_user_id=actor_id,
+            company_id=company_id,
+            reason=reason,
+        )
+        return posted
+
     def list_for_company(
         self, company_id: uuid.UUID, *, posted_only: bool = False
     ) -> list[JournalView]:
