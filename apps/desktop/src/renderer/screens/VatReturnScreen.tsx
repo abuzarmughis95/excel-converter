@@ -2,14 +2,10 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { errorMessage } from '../lib/errors.js';
 import type { VatReturnResponse, VatSubmissionResponse } from '../lib/api-types.js';
-
-function money(minor: number): string {
-  const sign = minor < 0 ? '-' : '';
-  const abs = Math.abs(minor);
-  return `£${sign}${Math.trunc(abs / 100).toString()}.${(abs % 100).toString().padStart(2, '0')}`;
-}
+import { money } from '../lib/money.js';
 
 interface BoxDef {
   n: number;
@@ -61,7 +57,7 @@ export function VatReturnScreen(): JSX.Element {
       setVat(vr);
       setSubmissions(subs);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load the VAT return.');
+      setError(errorMessage(err, 'Failed to load the VAT return.'));
     }
   }, [api, companyId]);
 
@@ -91,7 +87,7 @@ export function VatReturnScreen(): JSX.Element {
       setReference('');
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to finalise the return.');
+      setError(errorMessage(err, 'Failed to finalise the return.'));
     } finally {
       setBusy(false);
     }
@@ -102,11 +98,7 @@ export function VatReturnScreen(): JSX.Element {
   }, [reload]);
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   const net = vat?.box5_minor ?? 0;

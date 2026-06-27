@@ -2,35 +2,15 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { errorMessage } from '../lib/errors.js';
 import type {
   BankAccountResponse,
   MatchSuggestionResponse,
   ReconcilableLineResponse,
   ReconciliationSummaryResponse,
 } from '../lib/api-types.js';
-
-function money(minor: number): string {
-  const sign = minor < 0 ? '-' : '';
-  const abs = Math.abs(minor);
-  return `£${sign}${Math.trunc(abs / 100).toString()}.${(abs % 100).toString().padStart(2, '0')}`;
-}
-
-/** Parse a "1234.56" statement balance into integer minor units (or null). */
-function parseBalance(input: string): number | null {
-  const cleaned = input.trim().replace(/[,£\s]/g, '');
-  if (cleaned === '') {
-    return null;
-  }
-  if (!/^-?\d+(\.\d{1,2})?$/.test(cleaned)) {
-    return null;
-  }
-  const negative = cleaned.startsWith('-');
-  const unsigned = negative ? cleaned.slice(1) : cleaned;
-  const [whole, frac = ''] = unsigned.split('.');
-  const minor = Number(whole) * 100 + Number(frac.padEnd(2, '0'));
-  return negative ? -minor : minor;
-}
+import { money, parseMajorToMinorOrNull } from '../lib/money.js';
 
 /**
  * Bank Reconciliation: tick off ledger entries on a bank account against the
@@ -77,7 +57,7 @@ export function ReconciliationScreen(): JSX.Element {
     }
     setError(null);
     try {
-      const stmt = parseBalance(statementInput);
+      const stmt = parseMajorToMinorOrNull(statementInput);
       const [ls, sm] = await Promise.all([
         api.listReconcilableLines(companyId, selected),
         api.reconciliationSummary(companyId, selected, stmt),
@@ -85,7 +65,7 @@ export function ReconciliationScreen(): JSX.Element {
       setLines(ls);
       setSummary(sm);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load reconciliation.');
+      setError(errorMessage(err, 'Failed to load reconciliation.'));
     }
   }, [api, companyId, selected, statementInput]);
 
@@ -103,7 +83,7 @@ export function ReconciliationScreen(): JSX.Element {
       await api.setLineReconciled(companyId, selected, line.journal_line_id, !line.reconciled);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to update.');
+      setError(errorMessage(err, 'Failed to update.'));
     } finally {
       setBusy(false);
     }
@@ -118,7 +98,7 @@ export function ReconciliationScreen(): JSX.Element {
     try {
       setSuggestions(await api.reconciliationSuggestions(companyId, selected));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load suggestions.');
+      setError(errorMessage(err, 'Failed to load suggestions.'));
     } finally {
       setBusy(false);
     }
@@ -136,18 +116,14 @@ export function ReconciliationScreen(): JSX.Element {
       setSuggestions((prev) => prev.filter((x) => x.journal_line_id !== s.journal_line_id));
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to accept the match.');
+      setError(errorMessage(err, 'Failed to accept the match.'));
     } finally {
       setBusy(false);
     }
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   if (banks.length === 0) {

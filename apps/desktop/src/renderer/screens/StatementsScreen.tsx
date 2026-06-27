@@ -2,19 +2,11 @@ import { useEffect, useRef, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
 import { ApiError } from '../lib/api-client.js';
+import { errorMessage } from '../lib/errors.js';
 import type { BankAccountResponse, ExtractStatementResponse } from '../lib/api-types.js';
-
-function formatMinor(minor: number | null): string {
-  if (minor === null) {
-    return '';
-  }
-  const sign = minor < 0 ? '-' : '';
-  const abs = Math.abs(minor);
-  const whole = Math.trunc(abs / 100).toString();
-  const frac = (abs % 100).toString().padStart(2, '0');
-  return `${sign}${whole}.${frac}`;
-}
+import { formatMinorPlain as formatMinor } from '../lib/money.js';
 
 /**
  * Bank Statements screen: upload a statement PDF, which is sent to the backend
@@ -78,7 +70,7 @@ export function StatementsScreen(): JSX.Element {
           '. Post them to the ledger in Cashbook.',
       );
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to import lines.');
+      setError(errorMessage(err, 'Failed to import lines.'));
     } finally {
       setBusy(false);
     }
@@ -98,7 +90,7 @@ export function StatementsScreen(): JSX.Element {
       if (err instanceof ApiError && err.status === 503) {
         setError('Statement extraction is not configured on the server (no API key).');
       } else {
-        setError(err instanceof ApiError ? err.message : 'Failed to extract the statement.');
+        setError(errorMessage(err, 'Failed to extract the statement.'));
       }
     } finally {
       setBusy(false);
@@ -106,11 +98,7 @@ export function StatementsScreen(): JSX.Element {
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   return (

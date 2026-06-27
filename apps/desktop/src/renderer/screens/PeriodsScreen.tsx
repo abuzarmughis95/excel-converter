@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { errorMessage } from '../lib/errors.js';
 import type { PeriodResponse, PeriodStatus } from '../lib/api-types.js';
 
 const STATUS_LABEL: Record<PeriodStatus, string> = {
@@ -47,7 +48,7 @@ export function PeriodsScreen(): JSX.Element {
     try {
       setPeriods(await api.listPeriods(companyId));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load periods.');
+      setError(errorMessage(err, 'Failed to load periods.'));
     }
   }, [api, companyId]);
 
@@ -65,7 +66,7 @@ export function PeriodsScreen(): JSX.Element {
       await api.createPeriod(companyId, Number(year), startsOn, endsOn);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create the period.');
+      setError(errorMessage(err, 'Failed to create the period.'));
     } finally {
       setBusy(false);
     }
@@ -84,18 +85,14 @@ export function PeriodsScreen(): JSX.Element {
       await api.setPeriodStatus(companyId, period.id, target);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to change the status.');
+      setError(errorMessage(err, 'Failed to change the status.'));
     } finally {
       setBusy(false);
     }
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   return (

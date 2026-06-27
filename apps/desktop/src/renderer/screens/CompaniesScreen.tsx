@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type JSX } from 'react';
 
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { errorMessage } from '../lib/errors.js';
 
 const ACCOUNTS_TYPES = ['sole_trader', 'partnership', 'ltd', 'micro', 'small'] as const;
 
@@ -24,7 +24,7 @@ export function CompaniesScreen(): JSX.Element {
       await createCompany({ name, accounts_type: accountsType });
       setName('');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create company.');
+      setError(errorMessage(err, 'Failed to create company.'));
     } finally {
       setCreating(false);
     }

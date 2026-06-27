@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { errorMessage } from '../lib/errors.js';
 import type { DeviceResponse } from '../lib/api-types.js';
 
 /** Detect the current platform for the device record. */
@@ -52,7 +52,7 @@ export function DevicesScreen(): JSX.Element {
     try {
       setDevices(await api.listDevices());
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load devices.');
+      setError(errorMessage(err, 'Failed to load devices.'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export function DevicesScreen(): JSX.Element {
       });
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to register device.');
+      setError(errorMessage(err, 'Failed to register device.'));
     } finally {
       setBusy(false);
     }
@@ -87,7 +87,7 @@ export function DevicesScreen(): JSX.Element {
       await api.revokeDevice(deviceId);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to revoke device.');
+      setError(errorMessage(err, 'Failed to revoke device.'));
     } finally {
       setBusy(false);
     }
