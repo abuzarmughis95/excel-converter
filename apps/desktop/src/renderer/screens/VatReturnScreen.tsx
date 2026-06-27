@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
 import { Button, Checkbox } from '../components/ui/index.js';
+import { ApiError } from '../lib/api-client.js';
 import { errorMessage } from '../lib/errors.js';
 import type { VatReturnResponse, VatSubmissionResponse } from '../lib/api-types.js';
 import { money } from '../lib/money.js';
@@ -44,6 +45,9 @@ export function VatReturnScreen(): JSX.Element {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // HMRC MTD state. hmrcConnected is null until known, false if MTD is off too.
+  const [hmrcConnected, setHmrcConnected] = useState<boolean | null>(null);
+  const [hmrcAvailable, setHmrcAvailable] = useState(true);
 
   const reload = useCallback(async (): Promise<void> => {
     if (companyId === null) {
@@ -59,6 +63,17 @@ export function VatReturnScreen(): JSX.Element {
       setSubmissions(subs);
     } catch (err) {
       setError(errorMessage(err, 'Failed to load the VAT return.'));
+    }
+    // HMRC connection status is best-effort: a 503 means MTD is not configured.
+    try {
+      const s = await api.hmrcStatus(companyId);
+      setHmrcAvailable(true);
+      setHmrcConnected(s.connected);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 503) {
+        setHmrcAvailable(false);
+      }
+      setHmrcConnected(false);
     }
   }, [api, companyId]);
 
@@ -89,6 +104,55 @@ export function VatReturnScreen(): JSX.Element {
       await reload();
     } catch (err) {
       setError(errorMessage(err, 'Failed to finalise the return.'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Open the HMRC consent page, then accept the returned authorization code. */
+  async function connectHmrc(): Promise<void> {
+    if (companyId === null) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setStatus(null);
+    try {
+      const { authorize_url } = await api.hmrcAuthorizeUrl(companyId);
+      window.open(authorize_url, '_blank');
+      const code = window.prompt('After signing in at HMRC, paste the authorization code here:');
+      if (code === null || code.trim() === '') {
+        return;
+      }
+      await api.hmrcExchangeCode(companyId, code.trim());
+      setStatus('Connected to HMRC.');
+      await reload();
+    } catch (err) {
+      setError(errorMessage(err, 'Failed to connect to HMRC.'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitToHmrc(sub: VatSubmissionResponse): Promise<void> {
+    if (companyId === null) {
+      return;
+    }
+    const periodKey = window.prompt(
+      'Enter the HMRC obligation period key for this return (e.g. 18A1):',
+    );
+    if (periodKey === null || periodKey.trim() === '') {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setStatus(null);
+    try {
+      const receipt = await api.hmrcSubmit(companyId, sub.id, periodKey.trim());
+      setStatus(`Filed with HMRC. Receipt: ${receipt.form_bundle_number}.`);
+      await reload();
+    } catch (err) {
+      setError(errorMessage(err, 'Failed to submit to HMRC.'));
     } finally {
       setBusy(false);
     }
@@ -184,6 +248,25 @@ export function VatReturnScreen(): JSX.Element {
         {status !== null && <p className="balanced">{status}</p>}
       </form>
 
+      <div className="hmrc-bar">
+        <h3>HMRC Making Tax Digital</h3>
+        {!hmrcAvailable ? (
+          <p className="vat-field-hint">
+            MTD is not configured on the server (no HMRC credentials). Returns can
+            still be finalised and recorded with a manual reference.
+          </p>
+        ) : hmrcConnected === true ? (
+          <p>
+            <span className="hmrc-connected">Connected to HMRC ✓</span> — finalised
+            returns can be filed below.
+          </p>
+        ) : (
+          <Button onClick={() => void connectHmrc()} disabled={busy}>
+            Connect to HMRC
+          </Button>
+        )}
+      </div>
+
       {submissions.length > 0 && (
         <div className="vat-history">
           <h3>Submitted returns</h3>
@@ -193,6 +276,7 @@ export function VatReturnScreen(): JSX.Element {
                 <th>Period</th>
                 <th>Reference</th>
                 <th className="num">Box 5 (net)</th>
+                <th>HMRC</th>
               </tr>
             </thead>
             <tbody>
@@ -203,6 +287,19 @@ export function VatReturnScreen(): JSX.Element {
                   </td>
                   <td>{s.reference}</td>
                   <td className="num">{money(s.boxes.box5_minor)}</td>
+                  <td>
+                    {hmrcConnected === true ? (
+                      <Button
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => void submitToHmrc(s)}
+                      >
+                        Submit to HMRC
+                      </Button>
+                    ) : (
+                      <span style={{ opacity: 0.6 }}>—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

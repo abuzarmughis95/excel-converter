@@ -32,6 +32,10 @@ import type {
   CreateFixedAssetRequest,
   DepreciationRunResponse,
   FixedAssetResponse,
+  HmrcAuthorizeUrl,
+  HmrcConnectionStatus,
+  HmrcObligation,
+  HmrcSubmitResponse,
   PeriodResponse,
   PeriodStatus,
   ProfitAndLossResponse,
@@ -421,6 +425,58 @@ export class ApiClient {
       method: 'POST',
       path: `/companies/${companyId}/fixed-assets/${assetId}/depreciate`,
       body: { on_date: onDate },
+      auth: true,
+    });
+  }
+
+  // -- HMRC MTD for VAT -------------------------------------------------
+
+  hmrcStatus(companyId: string): Promise<HmrcConnectionStatus> {
+    return this.request<HmrcConnectionStatus>({
+      method: 'GET',
+      path: `/companies/${companyId}/hmrc/status`,
+      auth: true,
+    });
+  }
+
+  hmrcAuthorizeUrl(companyId: string): Promise<HmrcAuthorizeUrl> {
+    return this.request<HmrcAuthorizeUrl>({
+      method: 'GET',
+      path: `/companies/${companyId}/hmrc/authorize-url`,
+      auth: true,
+    });
+  }
+
+  async hmrcExchangeCode(companyId: string, code: string): Promise<void> {
+    await this.request<undefined>({
+      method: 'POST',
+      path: `/companies/${companyId}/hmrc/exchange`,
+      body: { code },
+      auth: true,
+    });
+  }
+
+  hmrcObligations(
+    companyId: string,
+    fromDate: string,
+    toDate: string,
+  ): Promise<HmrcObligation[]> {
+    return this.request<HmrcObligation[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/hmrc/obligations?from_date=${fromDate}&to_date=${toDate}`,
+      auth: true,
+    });
+  }
+
+  hmrcSubmit(
+    companyId: string,
+    submissionId: string,
+    periodKey: string,
+  ): Promise<HmrcSubmitResponse> {
+    return this.request<HmrcSubmitResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/hmrc/submit`,
+      body: { submission_id: submissionId, period_key: periodKey },
       auth: true,
     });
   }

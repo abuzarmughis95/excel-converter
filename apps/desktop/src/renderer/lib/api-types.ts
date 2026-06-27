@@ -330,3 +330,27 @@ export interface DepreciationRunResponse {
   charge_minor: number;
   journal_id: string | null;
 }
+
+export interface HmrcConnectionStatus {
+  connected: boolean;
+}
+
+export interface HmrcAuthorizeUrl {
+  authorize_url: string;
+}
+
+export interface HmrcObligation {
+  period_key: string;
+  start: string;
+  end: string;
+  due: string;
+  status: string;
+  received: string | null;
+}
+
+export interface HmrcSubmitResponse {
+  submission_id: string;
+  form_bundle_number: string;
+  charge_ref_number: string | null;
+  received_at: string;
+}

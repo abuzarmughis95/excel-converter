@@ -18,6 +18,7 @@ from ledgerline_backend.config import Settings
 from ledgerline_backend.models import User
 from ledgerline_backend.security.rate_limit import SlidingWindowRateLimiter
 from ledgerline_backend.security.tokens import TokenError, decode_access_token
+from ledgerline_backend.services.hmrc_client import HmrcClient, HttpHmrcClient
 
 
 def get_app_settings(request: Request) -> Settings:
@@ -72,6 +73,32 @@ SettingsDep = Annotated[Settings, Depends(get_app_settings)]
 SessionDep = Annotated[Session, Depends(get_db_session)]
 RateLimiterDep = Annotated[SlidingWindowRateLimiter, Depends(get_login_rate_limiter)]
 ClientIpDep = Annotated[str, Depends(get_client_ip)]
+
+
+def get_hmrc_client(settings: SettingsDep) -> HmrcClient:
+    """Provide a configured HMRC client, or raise 503 if not configured.
+
+    Tests override this dependency with a fake client, so HMRC is fully testable
+    without live credentials.
+    """
+    from fastapi import HTTPException, status  # local import to avoid cycles
+
+    if not settings.hmrc_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="HMRC MTD is not configured on the server",
+        )
+    assert settings.hmrc_client_id is not None  # noqa: S101 — guaranteed by hmrc_enabled
+    assert settings.hmrc_client_secret is not None  # noqa: S101
+    return HttpHmrcClient(
+        base_url=settings.hmrc_base_url,
+        client_id=settings.hmrc_client_id,
+        client_secret=settings.hmrc_client_secret,
+        redirect_uri=settings.hmrc_redirect_uri,
+    )
+
+
+HmrcClientDep = Annotated[HmrcClient, Depends(get_hmrc_client)]
 
 
 def get_current_user(
