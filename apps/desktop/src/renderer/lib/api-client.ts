@@ -29,6 +29,9 @@ import type {
   ImportResultResponse,
   JournalResponse,
   LoginRequest,
+  CreateFixedAssetRequest,
+  DepreciationRunResponse,
+  FixedAssetResponse,
   PeriodResponse,
   PeriodStatus,
   ProfitAndLossResponse,
@@ -383,6 +386,41 @@ export class ApiClient {
       method: 'POST',
       path: `/companies/${companyId}/periods/${periodId}/status`,
       body: { status: statusValue },
+      auth: true,
+    });
+  }
+
+  // -- fixed assets -----------------------------------------------------
+
+  listFixedAssets(companyId: string): Promise<FixedAssetResponse[]> {
+    return this.request<FixedAssetResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/fixed-assets`,
+      auth: true,
+    });
+  }
+
+  createFixedAsset(
+    companyId: string,
+    body: CreateFixedAssetRequest,
+  ): Promise<FixedAssetResponse> {
+    return this.request<FixedAssetResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/fixed-assets`,
+      body,
+      auth: true,
+    });
+  }
+
+  depreciateAsset(
+    companyId: string,
+    assetId: string,
+    onDate: string,
+  ): Promise<DepreciationRunResponse> {
+    return this.request<DepreciationRunResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/fixed-assets/${assetId}/depreciate`,
+      body: { on_date: onDate },
       auth: true,
     });
   }

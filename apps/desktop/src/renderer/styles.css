@@ -1120,3 +1120,20 @@ body {
 .ui-button-danger:hover:not(:disabled) {
   background: var(--color-danger-soft);
 }
+
+/* -- Fixed assets -- */
+.assets-create {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.5rem;
+}
+
+.assets-create .ui-button {
+  height: fit-content;
+}
+
+.assets-table {
+  margin-top: 0.5rem;
+}

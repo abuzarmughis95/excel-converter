@@ -12,6 +12,14 @@ from ledgerline_engine.account import (
     NormalBalance,
     normal_balance_for,
 )
+from ledgerline_engine.depreciation import (
+    DepreciationError,
+    DepreciationLine,
+    DepreciationMethod,
+    FixedAssetSpec,
+    period_charge,
+    schedule,
+)
 from ledgerline_engine.ledger import (
     LedgerNotBalancedError,
     TrialBalanceRow,
@@ -51,6 +59,10 @@ __all__ = [
     "AccountType",
     "BalanceSheet",
     "ControlKind",
+    "DepreciationError",
+    "DepreciationLine",
+    "DepreciationMethod",
+    "FixedAssetSpec",
     "EmptyPostingError",
     "IllegalPeriodTransitionError",
     "InvalidLineError",
@@ -74,7 +86,9 @@ __all__ = [
     "balance_sheet",
     "compute_vat_return",
     "normal_balance_for",
+    "period_charge",
     "profit_and_loss",
+    "schedule",
     "sum_money",
     "trial_balance",
 ]

@@ -292,3 +292,41 @@ export interface PeriodResponse {
   ends_on: string;
   status: PeriodStatus;
 }
+
+export type DepreciationMethod = 'straight_line' | 'reducing_balance';
+
+export interface FixedAssetResponse {
+  id: string;
+  name: string;
+  category: string | null;
+  acquired_on: string;
+  cost_minor: number;
+  residual_minor: number;
+  method: DepreciationMethod;
+  useful_life_periods: number | null;
+  rate_percent: number | null;
+  accumulated_depreciation_minor: number;
+  net_book_value_minor: number;
+  periods_depreciated: number;
+  disposed: boolean;
+}
+
+export interface CreateFixedAssetRequest {
+  name: string;
+  acquired_on: string;
+  cost_minor: number;
+  residual_minor: number;
+  method: DepreciationMethod;
+  useful_life_periods: number | null;
+  rate_percent: number | null;
+  asset_account_id: string;
+  accumulated_account_id: string;
+  expense_account_id: string;
+  category: string | null;
+}
+
+export interface DepreciationRunResponse {
+  asset_id: string;
+  charge_minor: number;
+  journal_id: string | null;
+}
