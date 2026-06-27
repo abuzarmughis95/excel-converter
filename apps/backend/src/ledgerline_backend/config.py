@@ -94,9 +94,25 @@ class Settings(BaseSettings):
     """How long a registered device may operate offline before re-checking its
     entitlement (30 days)."""
 
+    openai_api_key: str | None = None
+    """OpenAI API key for document (bank statement) extraction. Loaded from the
+    environment only; never hard-coded or committed. Extraction is unavailable
+    when unset."""
+
+    openai_model: str = "gpt-4o-mini"
+    """OpenAI model used for statement extraction (vision-capable). Configurable
+    so a newer model id can be supplied via the environment."""
+
+    openai_max_upload_bytes: int = 15 * 1024 * 1024
+    """Maximum accepted statement file size (15 MB)."""
+
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def ocr_enabled(self) -> bool:
+        return self.openai_api_key is not None and self.openai_api_key.strip() != ""
 
     @property
     def is_sqlite(self) -> bool:

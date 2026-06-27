@@ -16,8 +16,12 @@ from ledgerline_backend.db.base import Base
 
 @pytest.fixture
 def settings() -> Settings:
-    """Test settings: human-readable logs, test environment."""
-    return Settings(environment="test", log_json=False)
+    """Test settings: human-readable logs, test environment.
+
+    ``_env_file=None`` isolates tests from a developer's local .env (which may
+    hold real secrets like an OpenAI key) so behaviour is deterministic.
+    """
+    return Settings(environment="test", log_json=False, _env_file=None)
 
 
 @pytest.fixture

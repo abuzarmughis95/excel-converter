@@ -10,6 +10,7 @@ import { CompaniesScreen } from './screens/CompaniesScreen.js';
 import { DevicesScreen } from './screens/DevicesScreen.js';
 import { JournalEntryScreen } from './screens/JournalEntryScreen.js';
 import { SpreadsheetScreen } from './screens/SpreadsheetScreen.js';
+import { StatementsScreen } from './screens/StatementsScreen.js';
 
 /** Navigation targets. Several screens are wired to the backend; others are placeholders. */
 const SCREENS = [
@@ -17,6 +18,7 @@ const SCREENS = [
   'Companies',
   'Bookkeeping',
   'Journals',
+  'Bank Statements',
   'Cashbook',
   'VAT',
   'Spreadsheet Bridge',
@@ -63,6 +65,9 @@ function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   }
   if (screen === 'Spreadsheet Bridge') {
     return <SpreadsheetScreen />;
+  }
+  if (screen === 'Bank Statements') {
+    return <StatementsScreen />;
   }
   if (screen === 'Devices') {
     return <DevicesScreen />;

@@ -143,3 +143,28 @@ export interface WorkbookResponse {
 export interface SaveWorkbookRequest {
   sheets: { name: string; cells: string[][] }[];
 }
+
+export interface StatementLine {
+  date: string | null;
+  description: string;
+  money_out_minor: number;
+  money_in_minor: number;
+  balance_minor: number | null;
+}
+
+export interface StatementSummary {
+  account_name: string | null;
+  account_number: string | null;
+  sort_code: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  opening_balance_minor: number | null;
+  closing_balance_minor: number | null;
+}
+
+export interface ExtractStatementResponse {
+  currency: string;
+  reconciled: boolean;
+  summary: StatementSummary;
+  lines: StatementLine[];
+}

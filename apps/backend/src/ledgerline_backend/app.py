@@ -21,6 +21,7 @@ from ledgerline_backend.api import (
     devices,
     journals,
     meta,
+    statements,
     workbooks,
 )
 from ledgerline_backend.config import Settings, get_settings
@@ -84,6 +85,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(coa.router, prefix="/v1")
     app.include_router(journals.router, prefix="/v1")
     app.include_router(workbooks.router, prefix="/v1")
+    app.include_router(statements.router, prefix="/v1")
 
     return app
 

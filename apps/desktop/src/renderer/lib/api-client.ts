@@ -20,6 +20,7 @@ import type {
   CreateAccountRequest,
   CreateJournalRequest,
   DeviceResponse,
+  ExtractStatementResponse,
   JournalResponse,
   LoginRequest,
   RegisterDeviceRequest,
@@ -273,5 +274,32 @@ export class ApiClient {
       body,
       auth: true,
     });
+  }
+
+  // -- bank statement extraction (multipart upload) ---------------------
+
+  async extractStatement(companyId: string, file: File): Promise<ExtractStatementResponse> {
+    const form = new FormData();
+    form.append('file', file);
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token !== null) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // FormData sets its own Content-Type (with boundary); do not override it.
+    const response = await this.fetchFn(
+      `${this.baseUrl}/companies/${companyId}/statements/extract`,
+      { method: 'POST', headers, body: form },
+    );
+    const text = await response.text();
+    const payload: unknown = text.length > 0 ? JSON.parse(text) : null;
+    if (!response.ok) {
+      const detail =
+        payload !== null && typeof payload === 'object' && 'detail' in payload
+          ? String((payload as { detail: unknown }).detail)
+          : `Upload failed (${String(response.status)})`;
+      throw new ApiError(response.status, detail, payload);
+    }
+    return payload as ExtractStatementResponse;
   }
 }
