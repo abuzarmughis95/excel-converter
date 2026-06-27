@@ -3,13 +3,14 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
-import { errorMessage } from '../lib/errors.js';
+import { Button } from '../components/ui/index.js';
 import type {
   BankAccountResponse,
   MatchSuggestionResponse,
   ReconcilableLineResponse,
   ReconciliationSummaryResponse,
 } from '../lib/api-types.js';
+import { errorMessage } from '../lib/errors.js';
 import { money, parseMajorToMinorOrNull } from '../lib/money.js';
 
 /**
@@ -185,9 +186,9 @@ export function ReconciliationScreen(): JSX.Element {
       )}
 
       <div className="recon-suggest-bar">
-        <button type="button" onClick={() => void loadSuggestions()} disabled={busy}>
+        <Button onClick={() => void loadSuggestions()} disabled={busy}>
           Suggest matches
-        </button>
+        </Button>
       </div>
 
       {suggestions.length > 0 && (
@@ -221,9 +222,9 @@ export function ReconciliationScreen(): JSX.Element {
                   </span>
                 </td>
                 <td>
-                  <button type="button" disabled={busy} onClick={() => void acceptSuggestion(s)}>
+                  <Button disabled={busy} onClick={() => void acceptSuggestion(s)}>
                     Accept
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

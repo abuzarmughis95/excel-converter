@@ -3,12 +3,13 @@ import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'reac
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
-import { errorMessage } from '../lib/errors.js';
+import { Button } from '../components/ui/index.js';
 import type {
   AccountResponse,
   BankAccountResponse,
   BankStatementLineResponse,
 } from '../lib/api-types.js';
+import { errorMessage } from '../lib/errors.js';
 import { formatMinorPlain } from '../lib/money.js';
 
 function formatMinor(minor: number | null): string {
@@ -147,9 +148,9 @@ export function CashbookScreen(): JSX.Element {
             </option>
           ))}
         </select>
-        <button type="submit" disabled={busy || accounts.length === 0}>
+        <Button type="submit" disabled={busy || accounts.length === 0}>
           Add bank account
-        </button>
+        </Button>
       </form>
 
       {accounts.length === 0 && (
@@ -225,9 +226,9 @@ export function CashbookScreen(): JSX.Element {
                   </td>
                   <td>
                     {!ln.is_posted && (
-                      <button type="button" onClick={() => void onPost(ln.id)} disabled={busy}>
+                      <Button onClick={() => void onPost(ln.id)} disabled={busy}>
                         Post
-                      </button>
+                      </Button>
                     )}
                   </td>
                 </tr>

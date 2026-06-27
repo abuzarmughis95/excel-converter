@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { Button } from '../components/ui/index.js';
 import { ApiError } from '../lib/api-client.js';
 import { errorMessage } from '../lib/errors.js';
 import type { BankAccountResponse, ExtractStatementResponse } from '../lib/api-types.js';
@@ -116,15 +117,14 @@ export function StatementsScreen(): JSX.Element {
             }
           }}
         />
-        <button
-          type="button"
+        <Button
           onClick={() => {
             fileInput.current?.click();
           }}
           disabled={busy}
         >
           {busy ? 'Extracting…' : 'Upload bank statement (PDF)'}
-        </button>
+        </Button>
         {fileName !== null && <span className="statements-filename">{fileName}</span>}
       </div>
 
@@ -214,9 +214,9 @@ export function StatementsScreen(): JSX.Element {
                       </option>
                     ))}
                   </select>
-                  <button type="button" onClick={() => void onImport()} disabled={busy}>
+                  <Button onClick={() => void onImport()} disabled={busy}>
                     Import {result.lines.length} lines to cashbook
-                  </button>
+                  </Button>
                 </>
               )}
               {importMsg !== null && (
