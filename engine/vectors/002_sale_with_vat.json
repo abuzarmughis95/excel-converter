@@ -1,0 +1,23 @@
+{
+  "name": "Cash sale with 20% VAT (net 100.00, VAT 20.00, gross 120.00)",
+  "base_currency": "GBP",
+  "accounts": [
+    { "code": "1200", "name": "Bank", "type": "asset" },
+    { "code": "4000", "name": "Sales", "type": "income" },
+    { "code": "2200", "name": "VAT control", "type": "liability" }
+  ],
+  "postings": [
+    {
+      "lines": [
+        { "account": "1200", "amount": 12000, "base_amount": 12000, "debit": true },
+        { "account": "4000", "amount": 10000, "base_amount": 10000, "debit": false },
+        { "account": "2200", "amount": 2000, "base_amount": 2000, "debit": false }
+      ]
+    }
+  ],
+  "expected_trial_balance": [
+    { "account": "1200", "debit": 12000, "credit": 0 },
+    { "account": "4000", "debit": 0, "credit": 10000 },
+    { "account": "2200", "debit": 0, "credit": 2000 }
+  ]
+}

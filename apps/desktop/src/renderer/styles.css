@@ -1,0 +1,287 @@
+:root {
+  --color-bg: #0f1419;
+  --color-surface: #1a2332;
+  --color-text: #e6edf3;
+  --color-accent: #2f81f7;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.app-nav {
+  background: var(--color-surface);
+  padding: 1rem;
+}
+
+.app-brand {
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.app-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-nav button {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.app-nav button[aria-current='page'] {
+  background: var(--color-accent);
+}
+
+.app-main {
+  padding: 1.5rem 2rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-surface);
+  padding-bottom: 0.75rem;
+}
+
+.app-version {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-user {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.app-logout {
+  background: transparent;
+  border: 1px solid var(--color-surface);
+  color: inherit;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.app-logout:hover {
+  border-color: var(--color-accent);
+}
+
+/* -- Login screen -- */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--color-surface);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-brand {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.login-subtitle {
+  margin: 0 0 0.5rem;
+  opacity: 0.7;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.login-field input {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #2c3a4f;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.login-field input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.login-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.login-submit {
+  margin-top: 0.5rem;
+  padding: 0.65rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* -- Devices screen -- */
+.devices-toolbar {
+  margin-bottom: 1rem;
+}
+
+.devices-toolbar button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.devices-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.devices-table th,
+.devices-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-surface);
+}
+
+.devices-table button {
+  background: transparent;
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* -- Companies screen -- */
+.app-active-company {
+  margin: 0 0 1rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  background: rgba(47, 129, 247, 0.12);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 4px;
+}
+
+.company-create {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.company-create input,
+.company-create select {
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #2c3a4f;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.company-create input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.company-create button {
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.company-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.company-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.company-item.active {
+  border-color: var(--color-accent);
+}
+
+.company-name {
+  font-weight: 600;
+}
+
+.company-meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}

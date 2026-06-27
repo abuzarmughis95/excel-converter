@@ -1,0 +1,20 @@
+{
+  "name": "Simple cash sale, no VAT",
+  "base_currency": "GBP",
+  "accounts": [
+    { "code": "1200", "name": "Bank", "type": "asset" },
+    { "code": "4000", "name": "Sales", "type": "income" }
+  ],
+  "postings": [
+    {
+      "lines": [
+        { "account": "1200", "amount": 12000, "base_amount": 12000, "debit": true },
+        { "account": "4000", "amount": 12000, "base_amount": 12000, "debit": false }
+      ]
+    }
+  ],
+  "expected_trial_balance": [
+    { "account": "1200", "debit": 12000, "credit": 0 },
+    { "account": "4000", "debit": 0, "credit": 12000 }
+  ]
+}

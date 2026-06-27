@@ -1,0 +1,20 @@
+{
+  "name": "Foreign-currency purchase: USD 1000 at 0.80 = GBP 800 base",
+  "base_currency": "GBP",
+  "accounts": [
+    { "code": "1200", "name": "Bank (USD)", "type": "asset" },
+    { "code": "5000", "name": "Materials", "type": "expense" }
+  ],
+  "postings": [
+    {
+      "lines": [
+        { "account": "5000", "amount": 100000, "base_amount": 80000, "debit": true },
+        { "account": "1200", "amount": 100000, "base_amount": 80000, "debit": false }
+      ]
+    }
+  ],
+  "expected_trial_balance": [
+    { "account": "1200", "debit": 0, "credit": 80000 },
+    { "account": "5000", "debit": 80000, "credit": 0 }
+  ]
+}

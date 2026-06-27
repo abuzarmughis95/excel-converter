@@ -1,0 +1,36 @@
+{
+  "name": "@ledgerline/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.main.json && node scripts/build-main.mjs && node scripts/write-cjs-marker.mjs && vite build",
+    "dev": "node scripts/dev.mjs",
+    "smoke": "cross-env LEDGERLINE_SMOKE=1 electron .",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "clean": "rimraf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@ledgerline/shared-types": "workspace:*",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.5.0",
+    "@testing-library/react": "16.0.1",
+    "@testing-library/user-event": "14.5.2",
+    "@types/node": "20.16.10",
+    "@types/react": "18.3.9",
+    "@types/react-dom": "18.3.0",
+    "@vitejs/plugin-react": "4.3.1",
+    "cross-env": "7.0.3",
+    "electron": "32.1.2",
+    "esbuild": "0.24.0",
+    "jsdom": "25.0.1",
+    "vite": "5.4.8",
+    "vitest": "2.1.1"
+  }
+}

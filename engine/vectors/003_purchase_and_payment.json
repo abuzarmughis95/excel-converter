@@ -1,0 +1,28 @@
+{
+  "name": "Purchase on credit then payment (expense, creditor, bank)",
+  "base_currency": "GBP",
+  "accounts": [
+    { "code": "1200", "name": "Bank", "type": "asset" },
+    { "code": "2100", "name": "Creditors control", "type": "liability" },
+    { "code": "5000", "name": "Office costs", "type": "expense" }
+  ],
+  "postings": [
+    {
+      "lines": [
+        { "account": "5000", "amount": 30000, "base_amount": 30000, "debit": true },
+        { "account": "2100", "amount": 30000, "base_amount": 30000, "debit": false }
+      ]
+    },
+    {
+      "lines": [
+        { "account": "2100", "amount": 30000, "base_amount": 30000, "debit": true },
+        { "account": "1200", "amount": 30000, "base_amount": 30000, "debit": false }
+      ]
+    }
+  ],
+  "expected_trial_balance": [
+    { "account": "1200", "debit": 0, "credit": 30000 },
+    { "account": "2100", "debit": 0, "credit": 0 },
+    { "account": "5000", "debit": 30000, "credit": 0 }
+  ]
+}

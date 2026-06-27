@@ -1,0 +1,57 @@
+# Local development services for Ledgerline.
+#
+# This brings up the backing services the backend needs (PostgreSQL, Redis).
+# Application processes (FastAPI, Electron) run on the host for fast iteration;
+# the backend can optionally be containerised via the `backend` profile.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ledgerline-postgres
+    environment:
+      POSTGRES_USER: ledgerline
+      POSTGRES_PASSWORD: ledgerline_dev_only
+      POSTGRES_DB: ledgerline
+    ports:
+      # Host port 5432 may be taken by a native PostgreSQL install; default the
+      # host-side mapping to 5433 and allow override via LEDGERLINE_PG_PORT.
+      - '${LEDGERLINE_PG_PORT:-5433}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ledgerline']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ledgerline-redis
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '${LEDGERLINE_REDIS_PORT:-6380}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: ledgerline-backend
+    profiles: ['backend']
+    environment:
+      LEDGERLINE_ENVIRONMENT: development
+      LEDGERLINE_LOG_JSON: 'true'
+    ports:
+      - '8000:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

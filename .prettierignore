@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+.turbo
+.next
+*.lock
+pnpm-lock.yaml
+_preserved_legacy_docs
+apps/backend
