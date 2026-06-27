@@ -13,6 +13,7 @@ from ledgerline_backend.models.company import (
 )
 from ledgerline_backend.models.credential import UserCredential
 from ledgerline_backend.models.device import Device
+from ledgerline_backend.models.journal import Journal, JournalLine
 from ledgerline_backend.models.membership import CompanyMembership
 from ledgerline_backend.models.organisation import Organisation
 from ledgerline_backend.models.refresh_token import RefreshToken
@@ -27,6 +28,8 @@ __all__ = [
     "Company",
     "CompanyMembership",
     "Device",
+    "Journal",
+    "JournalLine",
     "Organisation",
     "RefreshToken",
     "SyncEvent",

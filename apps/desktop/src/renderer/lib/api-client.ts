@@ -18,11 +18,14 @@ import type {
   CreateCompanyRequest,
   AccountResponse,
   CreateAccountRequest,
+  CreateJournalRequest,
   DeviceResponse,
+  JournalResponse,
   LoginRequest,
   RegisterDeviceRequest,
   RegisterDeviceResponse,
   TokenResponse,
+  TrialBalanceRow,
   UserResponse,
 } from './api-types.js';
 
@@ -212,6 +215,41 @@ export class ApiClient {
     return this.request<AccountResponse>({
       method: 'POST',
       path: `/companies/${companyId}/accounts/${accountId}/deactivate`,
+      auth: true,
+    });
+  }
+
+  // -- journals + trial balance -----------------------------------------
+
+  listJournals(companyId: string): Promise<JournalResponse[]> {
+    return this.request<JournalResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/journals`,
+      auth: true,
+    });
+  }
+
+  createJournal(companyId: string, body: CreateJournalRequest): Promise<JournalResponse> {
+    return this.request<JournalResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/journals`,
+      body,
+      auth: true,
+    });
+  }
+
+  postJournal(companyId: string, journalId: string): Promise<JournalResponse> {
+    return this.request<JournalResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/journals/${journalId}/post`,
+      auth: true,
+    });
+  }
+
+  trialBalance(companyId: string): Promise<TrialBalanceRow[]> {
+    return this.request<TrialBalanceRow[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/trial-balance`,
       auth: true,
     });
   }

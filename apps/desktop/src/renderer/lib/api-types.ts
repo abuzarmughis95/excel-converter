@@ -84,3 +84,46 @@ export interface CreateAccountRequest {
   account_type: string;
   control_kind?: string | null;
 }
+
+export interface JournalLineInput {
+  account_id: string;
+  debit_minor?: number;
+  credit_minor?: number;
+  narrative?: string | null;
+}
+
+export interface CreateJournalRequest {
+  journal_date: string;
+  lines: JournalLineInput[];
+  currency?: string;
+  reference?: string | null;
+  narrative?: string | null;
+}
+
+export interface JournalLineResponse {
+  line_no: number;
+  account_id: string;
+  account_code: string;
+  account_name: string;
+  debit_minor: number;
+  credit_minor: number;
+  narrative: string | null;
+}
+
+export interface JournalResponse {
+  id: string;
+  journal_date: string;
+  journal_type: string;
+  reference: string | null;
+  narrative: string | null;
+  currency: string;
+  is_posted: boolean;
+  lines: JournalLineResponse[];
+}
+
+export interface TrialBalanceRow {
+  account_code: string;
+  account_name: string;
+  debit_minor: number;
+  credit_minor: number;
+}

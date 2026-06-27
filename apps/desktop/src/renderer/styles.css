@@ -285,3 +285,147 @@ body {
   font-size: 0.8rem;
   opacity: 0.7;
 }
+
+/* -- Journal entry grid -- */
+.journal-header-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.journal-header-row input {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #2c3a4f;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.journal-narrative {
+  flex: 1;
+}
+
+.journal-narrative input {
+  width: 100%;
+  max-width: 480px;
+}
+
+.journal-grid {
+  width: 100%;
+  max-width: 720px;
+  border-collapse: collapse;
+}
+
+.journal-grid th,
+.journal-grid td {
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--color-surface);
+}
+
+.journal-grid th.num,
+.journal-grid td.num {
+  text-align: right;
+  width: 130px;
+}
+
+.journal-grid select,
+.journal-grid input {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #2c3a4f;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.journal-grid td.num input {
+  text-align: right;
+}
+
+.journal-grid tfoot td {
+  font-weight: 600;
+  border-top: 2px solid var(--color-surface);
+}
+
+.journal-row-remove {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.journal-balance-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1rem 0;
+  max-width: 720px;
+}
+
+.journal-balance-bar .balanced {
+  color: #3fb950;
+  font-weight: 600;
+}
+
+.journal-balance-bar .unbalanced {
+  color: #d29922;
+  font-weight: 600;
+}
+
+.journal-post {
+  margin-left: auto;
+  padding: 0.55rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.journal-post:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.journal-lower {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.journal-recent,
+.journal-tb {
+  flex: 1;
+  min-width: 280px;
+}
+
+.journal-recent h3,
+.journal-tb h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.journal-recent ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.journal-recent li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--color-surface);
+}
+
+.devices-table th.num,
+.devices-table td.num {
+  text-align: right;
+}

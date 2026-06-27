@@ -8,12 +8,14 @@ import { CompanyProvider, useCompanies } from './company/CompanyContext.js';
 import { ChartOfAccountsScreen } from './screens/ChartOfAccountsScreen.js';
 import { CompaniesScreen } from './screens/CompaniesScreen.js';
 import { DevicesScreen } from './screens/DevicesScreen.js';
+import { JournalEntryScreen } from './screens/JournalEntryScreen.js';
 
-/** Navigation targets. "Devices" is wired to the backend; others are placeholders. */
+/** Navigation targets. Several screens are wired to the backend; others are placeholders. */
 const SCREENS = [
   'Dashboard',
   'Companies',
   'Bookkeeping',
+  'Journals',
   'Cashbook',
   'VAT',
   'Spreadsheet Bridge',
@@ -54,6 +56,9 @@ function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   }
   if (screen === 'Bookkeeping') {
     return <ChartOfAccountsScreen />;
+  }
+  if (screen === 'Journals') {
+    return <JournalEntryScreen />;
   }
   if (screen === 'Devices') {
     return <DevicesScreen />;
