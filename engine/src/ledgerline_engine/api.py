@@ -26,6 +26,13 @@ from ledgerline_engine.ledger import (
     trial_balance,
 )
 from ledgerline_engine.money import Money, Rounding, sum_money
+from ledgerline_engine.payroll import (
+    NiCategory,
+    PayComponents,
+    PayFrequency,
+    PayrollError,
+    compute_pay,
+)
 from ledgerline_engine.period import (
     IllegalPeriodTransitionError,
     Period,
@@ -68,7 +75,11 @@ __all__ = [
     "InvalidLineError",
     "LedgerNotBalancedError",
     "Money",
+    "NiCategory",
     "NormalBalance",
+    "PayComponents",
+    "PayFrequency",
+    "PayrollError",
     "Period",
     "PeriodStatus",
     "Posting",
@@ -84,6 +95,7 @@ __all__ = [
     "VatEntry",
     "VatReturn",
     "balance_sheet",
+    "compute_pay",
     "compute_vat_return",
     "normal_balance_for",
     "period_charge",

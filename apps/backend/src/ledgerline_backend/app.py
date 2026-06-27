@@ -24,6 +24,7 @@ from ledgerline_backend.api import (
     hmrc,
     journals,
     meta,
+    payroll,
     periods,
     statements,
     workbooks,
@@ -94,6 +95,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(periods.router, prefix="/v1")
     app.include_router(assets.router, prefix="/v1")
     app.include_router(hmrc.router, prefix="/v1")
+    app.include_router(payroll.router, prefix="/v1")
 
     return app
 

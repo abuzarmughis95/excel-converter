@@ -22,6 +22,7 @@ from ledgerline_backend.models.fixed_asset import FixedAsset
 from ledgerline_backend.models.journal import Journal, JournalLine
 from ledgerline_backend.models.membership import CompanyMembership
 from ledgerline_backend.models.organisation import Organisation
+from ledgerline_backend.models.payroll import Employee, Payslip
 from ledgerline_backend.models.refresh_token import RefreshToken
 from ledgerline_backend.models.sync import SyncEvent
 from ledgerline_backend.models.user import User
@@ -39,11 +40,13 @@ __all__ = [
     "Company",
     "CompanyMembership",
     "Device",
+    "Employee",
     "FixedAsset",
     "HmrcToken",
     "Journal",
     "JournalLine",
     "Organisation",
+    "Payslip",
     "RefreshToken",
     "Sheet",
     "SyncEvent",

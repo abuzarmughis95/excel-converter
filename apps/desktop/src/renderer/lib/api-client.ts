@@ -29,9 +29,14 @@ import type {
   ImportResultResponse,
   JournalResponse,
   LoginRequest,
+  CreateEmployeeRequest,
   CreateFixedAssetRequest,
   DepreciationRunResponse,
+  EmployeeResponse,
   FixedAssetResponse,
+  PayRunResponse,
+  PayslipResponse,
+  RunPayrollRequest,
   HmrcAuthorizeUrl,
   HmrcConnectionStatus,
   HmrcObligation,
@@ -477,6 +482,45 @@ export class ApiClient {
       method: 'POST',
       path: `/companies/${companyId}/hmrc/submit`,
       body: { submission_id: submissionId, period_key: periodKey },
+      auth: true,
+    });
+  }
+
+  // -- payroll ----------------------------------------------------------
+
+  listEmployees(companyId: string): Promise<EmployeeResponse[]> {
+    return this.request<EmployeeResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/payroll/employees`,
+      auth: true,
+    });
+  }
+
+  createEmployee(
+    companyId: string,
+    body: CreateEmployeeRequest,
+  ): Promise<EmployeeResponse> {
+    return this.request<EmployeeResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/payroll/employees`,
+      body,
+      auth: true,
+    });
+  }
+
+  listPayslips(companyId: string): Promise<PayslipResponse[]> {
+    return this.request<PayslipResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/payroll/payslips`,
+      auth: true,
+    });
+  }
+
+  runPayroll(companyId: string, body: RunPayrollRequest): Promise<PayRunResponse> {
+    return this.request<PayRunResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/payroll/runs`,
+      body,
       auth: true,
     });
   }
