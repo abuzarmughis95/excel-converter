@@ -5,6 +5,7 @@ import { useCompanies } from '../company/CompanyContext.js';
 import { ApiError } from '../lib/api-client.js';
 import type {
   BankAccountResponse,
+  MatchSuggestionResponse,
   ReconcilableLineResponse,
   ReconciliationSummaryResponse,
 } from '../lib/api-types.js';
@@ -45,6 +46,7 @@ export function ReconciliationScreen(): JSX.Element {
   const [selected, setSelected] = useState<string | null>(null);
   const [lines, setLines] = useState<ReconcilableLineResponse[]>([]);
   const [summary, setSummary] = useState<ReconciliationSummaryResponse | null>(null);
+  const [suggestions, setSuggestions] = useState<MatchSuggestionResponse[]>([]);
   const [statementInput, setStatementInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -102,6 +104,39 @@ export function ReconciliationScreen(): JSX.Element {
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function loadSuggestions(): Promise<void> {
+    if (companyId === null || selected === null) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      setSuggestions(await api.reconciliationSuggestions(companyId, selected));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load suggestions.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Accept a suggested match: reconcile the ledger entry it points at. */
+  async function acceptSuggestion(s: MatchSuggestionResponse): Promise<void> {
+    if (companyId === null || selected === null) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.setLineReconciled(companyId, selected, s.journal_line_id, true);
+      setSuggestions((prev) => prev.filter((x) => x.journal_line_id !== s.journal_line_id));
+      await reload();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to accept the match.');
     } finally {
       setBusy(false);
     }
@@ -171,6 +206,53 @@ export function ReconciliationScreen(): JSX.Element {
             </span>
           )}
         </div>
+      )}
+
+      <div className="recon-suggest-bar">
+        <button type="button" onClick={() => void loadSuggestions()} disabled={busy}>
+          Suggest matches
+        </button>
+      </div>
+
+      {suggestions.length > 0 && (
+        <table className="devices-table recon-suggestions">
+          <thead>
+            <tr>
+              <th>Ledger entry</th>
+              <th>Statement line</th>
+              <th className="num">Amount</th>
+              <th>Confidence</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {suggestions.map((s) => (
+              <tr key={s.journal_line_id}>
+                <td>
+                  {s.ledger_date} · {s.ledger_narrative ?? '—'}
+                </td>
+                <td>
+                  {s.statement_date ?? '—'} · {s.statement_description}
+                </td>
+                <td className="num">{money(s.amount_minor)}</td>
+                <td>
+                  <span className={`recon-conf recon-conf-${s.confidence}`}>
+                    {s.confidence === 'exact'
+                      ? 'Exact (same date)'
+                      : s.days_apart !== null
+                        ? `Amount (${String(s.days_apart)}d apart)`
+                        : 'Amount'}
+                  </span>
+                </td>
+                <td>
+                  <button type="button" disabled={busy} onClick={() => void acceptSuggestion(s)}>
+                    Accept
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
       <table className="devices-table">

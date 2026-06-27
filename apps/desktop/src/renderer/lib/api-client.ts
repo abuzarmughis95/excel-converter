@@ -34,6 +34,7 @@ import type {
   ProfitAndLossResponse,
   VatReturnResponse,
   ReconcilableLineResponse,
+  MatchSuggestionResponse,
   ReconciliationSummaryResponse,
   RegisterDeviceRequest,
   RegisterDeviceResponse,
@@ -502,6 +503,17 @@ export class ApiClient {
     return this.request<ReconciliationSummaryResponse>({
       method: 'GET',
       path: `/companies/${companyId}/bank-accounts/${bankAccountId}/reconciliation-summary${query}`,
+      auth: true,
+    });
+  }
+
+  reconciliationSuggestions(
+    companyId: string,
+    bankAccountId: string,
+  ): Promise<MatchSuggestionResponse[]> {
+    return this.request<MatchSuggestionResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/reconciliation-suggestions`,
       auth: true,
     });
   }

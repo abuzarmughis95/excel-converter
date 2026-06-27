@@ -43,6 +43,21 @@ function stubFetch(): void {
       lineReconciled = (JSON.parse(String(init?.body)) as { reconciled: boolean }).reconciled;
       return json(204, null);
     }
+    if (url.includes('/reconciliation-suggestions')) {
+      return json(200, lineReconciled ? [] : [
+        {
+          journal_line_id: 'jl-1',
+          ledger_date: '2026-06-27',
+          ledger_narrative: 'SALE A',
+          statement_line_id: 'sl-1',
+          statement_date: '2026-06-27',
+          statement_description: 'SALE A',
+          amount_minor: 10000,
+          confidence: 'exact',
+          days_apart: 0,
+        },
+      ]);
+    }
     if (url.includes('/reconciliation-summary')) {
       return json(200, {
         ledger_balance_minor: 10000,
@@ -104,5 +119,31 @@ describe('ReconciliationScreen', () => {
       expect(screen.getByLabelText('Reconcile SALE A')).toBeChecked();
     });
     expect(screen.getByText('Outstanding items: 0')).toBeInTheDocument();
+  });
+
+  it('suggests a match and accepts it', async () => {
+    const user = userEvent.setup();
+    render(
+      <AuthProvider>
+        <PreAuth />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('SALE A')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Suggest matches' }));
+
+    // The exact-confidence suggestion appears with an Accept action.
+    await waitFor(() => {
+      expect(screen.getByText('Exact (same date)')).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: 'Accept' }));
+
+    // Accepting reconciles the ledger entry.
+    await waitFor(() => {
+      expect(screen.getByLabelText('Reconcile SALE A')).toBeChecked();
+    });
   });
 });

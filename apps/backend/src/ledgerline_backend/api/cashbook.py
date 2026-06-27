@@ -356,3 +356,51 @@ def reconciliation_summary(
         statement_balance_minor=summary.statement_balance_minor,
         difference_minor=summary.difference_minor,
     )
+
+
+class MatchSuggestionResponse(BaseModel):
+    journal_line_id: uuid.UUID
+    ledger_date: str | None
+    ledger_narrative: str | None
+    statement_line_id: uuid.UUID
+    statement_date: str | None
+    statement_description: str
+    amount_minor: int
+    confidence: str
+    days_apart: int | None
+
+
+@router.get(
+    "/{bank_account_id}/reconciliation-suggestions",
+    response_model=list[MatchSuggestionResponse],
+)
+def reconciliation_suggestions(
+    company_id: uuid.UUID,
+    bank_account_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+    max_days: int = 5,
+) -> list[MatchSuggestionResponse]:
+    """Suggest matches between unreconciled ledger entries and statement lines."""
+    try:
+        suggestions = ReconciliationService(session).suggest_matches(
+            company_id, bank_account_id, max_days=max_days
+        )
+    except ReconBankNotFound as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bank account not found"
+        ) from exc
+    return [
+        MatchSuggestionResponse(
+            journal_line_id=s.journal_line_id,
+            ledger_date=s.ledger_date,
+            ledger_narrative=s.ledger_narrative,
+            statement_line_id=s.statement_line_id,
+            statement_date=s.statement_date,
+            statement_description=s.statement_description,
+            amount_minor=s.amount_minor,
+            confidence=s.confidence,
+            days_apart=s.days_apart,
+        )
+        for s in suggestions
+    ]

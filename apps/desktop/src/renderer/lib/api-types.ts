@@ -250,6 +250,18 @@ export interface ReconciliationSummaryResponse {
   difference_minor: number | null;
 }
 
+export interface MatchSuggestionResponse {
+  journal_line_id: string;
+  ledger_date: string | null;
+  ledger_narrative: string | null;
+  statement_line_id: string;
+  statement_date: string | null;
+  statement_description: string;
+  amount_minor: number;
+  confidence: 'exact' | 'amount';
+  days_apart: number | null;
+}
+
 export interface VatReturnResponse {
   box1_minor: number;
   box2_minor: number;

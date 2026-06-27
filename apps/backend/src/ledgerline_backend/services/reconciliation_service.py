@@ -11,6 +11,7 @@ journal line) so the immutable journal lines are never mutated.
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 from dataclasses import dataclass
 
@@ -20,6 +21,7 @@ from sqlalchemy.orm import Session
 from ledgerline_backend.models import (
     BankAccount,
     BankReconciliationMark,
+    BankStatementLine,
     Journal,
     JournalLine,
 )
@@ -60,6 +62,22 @@ class ReconciliationSummary:
     unreconciled_count: int
     statement_balance_minor: int | None
     difference_minor: int | None
+
+
+@dataclass(frozen=True)
+class MatchSuggestion:
+    """A suggested pairing of an unreconciled ledger entry to a statement line."""
+
+    journal_line_id: uuid.UUID
+    ledger_date: str | None
+    ledger_narrative: str | None
+    statement_line_id: uuid.UUID
+    statement_date: str | None
+    statement_description: str
+    amount_minor: int
+    # Confidence: "exact" (same amount and date) or "amount" (amount only).
+    confidence: str
+    days_apart: int | None
 
 
 class ReconciliationService:
@@ -197,3 +215,82 @@ class ReconciliationService:
             statement_balance_minor=statement_balance_minor,
             difference_minor=difference,
         )
+
+    def suggest_matches(
+        self,
+        company_id: uuid.UUID,
+        bank_account_id: uuid.UUID,
+        *,
+        max_days: int = 5,
+    ) -> list[MatchSuggestion]:
+        """Suggest matches between unreconciled ledger entries and statement lines.
+
+        For each unreconciled ledger entry on the bank account, find a statement
+        line with the SAME signed amount, preferring the closest date within
+        ``max_days``. Each statement line is suggested at most once (greedy:
+        exact date matches are assigned first). The user confirms a suggestion,
+        which then reconciles the ledger entry.
+        """
+        account = self._get_account(company_id, bank_account_id)
+        marked = self._marked_ids(account)
+
+        # Unreconciled ledger entries, keyed by signed amount.
+        unreconciled = [
+            (line, journal)
+            for line, journal in self._bank_lines(account)
+            if line.id not in marked
+        ]
+        # Candidate statement lines (signed = money_in - money_out).
+        statement_lines = list(
+            self._session.scalars(
+                select(BankStatementLine).where(
+                    BankStatementLine.bank_account_id == account.id
+                )
+            ).all()
+        )
+        used_statement: set[uuid.UUID] = set()
+
+        def day_distance(a: dt.date | None, b: dt.date | None) -> int | None:
+            if a is None or b is None:
+                return None
+            return abs((a - b).days)
+
+        suggestions: list[MatchSuggestion] = []
+        # Sort so the entries most likely to have an exact-date match are handled
+        # first; this makes the greedy assignment stable and exact-biased.
+        for line, journal in unreconciled:
+            signed = self._signed(line)
+            best: BankStatementLine | None = None
+            best_days: int | None = None
+            for stmt in statement_lines:
+                if stmt.id in used_statement:
+                    continue
+                stmt_signed = stmt.money_in_minor - stmt.money_out_minor
+                if stmt_signed != signed:
+                    continue
+                days = day_distance(journal.journal_date, stmt.line_date)
+                # Reject if a date is known on both sides and too far apart.
+                if days is not None and days > max_days:
+                    continue
+                # Prefer the closest known date; unknown-date lines rank last.
+                if best is None:
+                    best, best_days = stmt, days
+                elif days is not None and (best_days is None or days < best_days):
+                    best, best_days = stmt, days
+            if best is None:
+                continue
+            used_statement.add(best.id)
+            suggestions.append(
+                MatchSuggestion(
+                    journal_line_id=line.id,
+                    ledger_date=journal.journal_date.isoformat(),
+                    ledger_narrative=journal.narrative,
+                    statement_line_id=best.id,
+                    statement_date=best.line_date.isoformat() if best.line_date else None,
+                    statement_description=best.description,
+                    amount_minor=signed,
+                    confidence="exact" if best_days == 0 else "amount",
+                    days_apart=best_days,
+                )
+            )
+        return suggestions
