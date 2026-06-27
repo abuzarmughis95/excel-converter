@@ -901,3 +901,43 @@ body {
   background: rgba(210, 153, 34, 0.2);
   color: #d29922;
 }
+
+/* -- VAT finalise -- */
+.vat-finalise {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-surface);
+}
+
+.vat-finalise h3,
+.vat-history h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+}
+
+.vat-finalise-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.vat-finalise-row input[type='date'],
+.vat-finalise-row input[type='text'] {
+  padding: 0.4rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #2c3a4f;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.vat-lock-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vat-history {
+  margin-top: 1.75rem;
+}

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { ApiError } from '../lib/api-client.js';
-import type { VatReturnResponse } from '../lib/api-types.js';
+import type { VatReturnResponse, VatSubmissionResponse } from '../lib/api-types.js';
 
 function money(minor: number): string {
   const sign = minor < 0 ? '-' : '';
@@ -39,7 +39,14 @@ export function VatReturnScreen(): JSX.Element {
   const companyId = activeCompany?.id ?? null;
 
   const [vat, setVat] = useState<VatReturnResponse | null>(null);
+  const [submissions, setSubmissions] = useState<VatSubmissionResponse[]>([]);
+  const [periodStart, setPeriodStart] = useState('2026-01-01');
+  const [periodEnd, setPeriodEnd] = useState('2026-03-31');
+  const [reference, setReference] = useState('');
+  const [lockPeriod, setLockPeriod] = useState(true);
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const reload = useCallback(async (): Promise<void> => {
     if (companyId === null) {
@@ -47,11 +54,48 @@ export function VatReturnScreen(): JSX.Element {
     }
     setError(null);
     try {
-      setVat(await api.vatReturn(companyId));
+      const [vr, subs] = await Promise.all([
+        api.vatReturn(companyId),
+        api.listVatSubmissions(companyId),
+      ]);
+      setVat(vr);
+      setSubmissions(subs);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load the VAT return.');
     }
   }, [api, companyId]);
+
+  async function finalise(): Promise<void> {
+    if (companyId === null) {
+      return;
+    }
+    if (reference.trim() === '') {
+      setError('Enter a submission reference (e.g. the HMRC receipt number).');
+      return;
+    }
+    if (!window.confirm('Finalise this VAT return? The figures will be snapshotted.')) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setStatus(null);
+    try {
+      const sub = await api.finaliseVatReturn(
+        companyId,
+        periodStart,
+        periodEnd,
+        reference.trim(),
+        lockPeriod,
+      );
+      setStatus(`Finalised ${sub.period_start} to ${sub.period_end} (ref ${sub.reference}).`);
+      setReference('');
+      await reload();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to finalise the return.');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     void reload();
@@ -97,6 +141,89 @@ export function VatReturnScreen(): JSX.Element {
                 : `${money(net)} reclaimable from HMRC.`}
           </p>
         </>
+      )}
+
+      <form
+        className="vat-finalise"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void finalise();
+        }}
+      >
+        <h3>Finalise return</h3>
+        <div className="vat-finalise-row">
+          <label>
+            Period start{' '}
+            <input
+              type="date"
+              value={periodStart}
+              onChange={(e) => {
+                setPeriodStart(e.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Period end{' '}
+            <input
+              type="date"
+              value={periodEnd}
+              onChange={(e) => {
+                setPeriodEnd(e.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Reference{' '}
+            <input
+              type="text"
+              placeholder="HMRC receipt"
+              value={reference}
+              onChange={(e) => {
+                setReference(e.target.value);
+              }}
+            />
+          </label>
+          <label className="vat-lock-check">
+            <input
+              type="checkbox"
+              checked={lockPeriod}
+              onChange={(e) => {
+                setLockPeriod(e.target.checked);
+              }}
+            />{' '}
+            Lock period
+          </label>
+          <button type="submit" disabled={busy}>
+            Finalise
+          </button>
+        </div>
+        {status !== null && <p className="balanced">{status}</p>}
+      </form>
+
+      {submissions.length > 0 && (
+        <div className="vat-history">
+          <h3>Submitted returns</h3>
+          <table className="devices-table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Reference</th>
+                <th className="num">Box 5 (net)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {submissions.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    {s.period_start} to {s.period_end}
+                  </td>
+                  <td>{s.reference}</td>
+                  <td className="num">{money(s.boxes.box5_minor)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

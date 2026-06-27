@@ -18,6 +18,7 @@ purchase. (A dedicated sale/purchase flag can replace this later.)
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 from dataclasses import dataclass
 
@@ -30,12 +31,31 @@ from ledgerline_engine.api import (
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ledgerline_backend.models import ChartOfAccount, Journal, JournalLine
+from ledgerline_backend.models import (
+    AccountingPeriod,
+    ChartOfAccount,
+    Journal,
+    JournalLine,
+    VatReturnSubmission,
+)
+from ledgerline_backend.services.audit import record_audit
 
 # VAT codes that are EC acquisitions/dispatches (feed boxes 2/8/9).
 _EC_CODES = {"EC"}
 # VAT codes that represent a taxable supply at all (exempt/zero still report net).
 _TAXABLE_CODES = {"SR", "RR", "ZR", "EX", "EC"}
+
+
+def _utcnow() -> dt.datetime:
+    return dt.datetime.now(tz=dt.UTC)
+
+
+class VatError(Exception):
+    """Base class for VAT submission failures."""
+
+
+class VatSubmissionExistsError(VatError):
+    """A submission already covers this exact period."""
 
 
 @dataclass(frozen=True)
@@ -49,6 +69,16 @@ class VatReturnView:
     box7_minor: int
     box8_minor: int
     box9_minor: int
+
+
+@dataclass(frozen=True)
+class VatSubmissionView:
+    id: uuid.UUID
+    period_start: dt.date
+    period_end: dt.date
+    reference: str
+    finalised_at: dt.datetime
+    boxes: VatReturnView
 
 
 class VatService:
@@ -104,3 +134,108 @@ class VatService:
             box8_minor=result.box8_minor,
             box9_minor=result.box9_minor,
         )
+
+    def _to_submission_view(self, sub: VatReturnSubmission) -> VatSubmissionView:
+        return VatSubmissionView(
+            id=sub.id,
+            period_start=sub.period_start,
+            period_end=sub.period_end,
+            reference=sub.reference,
+            finalised_at=sub.finalised_at,
+            boxes=VatReturnView(
+                box1_minor=sub.box1_minor,
+                box2_minor=sub.box2_minor,
+                box3_minor=sub.box3_minor,
+                box4_minor=sub.box4_minor,
+                box5_minor=sub.box5_minor,
+                box6_minor=sub.box6_minor,
+                box7_minor=sub.box7_minor,
+                box8_minor=sub.box8_minor,
+                box9_minor=sub.box9_minor,
+            ),
+        )
+
+    def list_submissions(self, company_id: uuid.UUID) -> list[VatSubmissionView]:
+        rows = self._session.scalars(
+            select(VatReturnSubmission)
+            .where(VatReturnSubmission.company_id == company_id)
+            .order_by(VatReturnSubmission.period_end.desc())
+        ).all()
+        return [self._to_submission_view(s) for s in rows]
+
+    def finalise(
+        self,
+        *,
+        actor_id: uuid.UUID,
+        company_id: uuid.UUID,
+        period_start: dt.date,
+        period_end: dt.date,
+        reference: str,
+        lock_period: bool = False,
+        base_currency: str = "GBP",
+    ) -> VatSubmissionView:
+        """Snapshot the current 9-box return for a period and record a submission.
+
+        Optionally locks any accounting period fully inside the date range so the
+        snapshotted figures cannot change. The actual HMRC API call is a later
+        step; ``reference`` is the manual filing/receipt reference.
+        """
+        if not reference.strip():
+            raise VatError("A submission reference is required")
+        if period_end < period_start:
+            raise VatError("Period end must not be before its start")
+        existing = self._session.scalar(
+            select(VatReturnSubmission).where(
+                VatReturnSubmission.company_id == company_id,
+                VatReturnSubmission.period_start == period_start,
+                VatReturnSubmission.period_end == period_end,
+            )
+        )
+        if existing is not None:
+            raise VatSubmissionExistsError(
+                "A VAT return has already been submitted for this period"
+            )
+
+        boxes = self.vat_return(company_id, base_currency=base_currency)
+        submission = VatReturnSubmission(
+            company_id=company_id,
+            period_start=period_start,
+            period_end=period_end,
+            reference=reference.strip(),
+            finalised_at=_utcnow(),
+            box1_minor=boxes.box1_minor,
+            box2_minor=boxes.box2_minor,
+            box3_minor=boxes.box3_minor,
+            box4_minor=boxes.box4_minor,
+            box5_minor=boxes.box5_minor,
+            box6_minor=boxes.box6_minor,
+            box7_minor=boxes.box7_minor,
+            box8_minor=boxes.box8_minor,
+            box9_minor=boxes.box9_minor,
+        )
+        self._session.add(submission)
+        self._session.flush()
+
+        if lock_period:
+            # Lock any period whose range is fully covered by the return period.
+            periods = self._session.scalars(
+                select(AccountingPeriod).where(
+                    AccountingPeriod.company_id == company_id,
+                    AccountingPeriod.starts_on >= period_start,
+                    AccountingPeriod.ends_on <= period_end,
+                    AccountingPeriod.status != "locked",
+                )
+            ).all()
+            for period in periods:
+                period.status = "locked"
+
+        record_audit(
+            self._session,
+            entity_type="vat_return_submission",
+            entity_id=submission.id,
+            action="vat_finalised",
+            actor_user_id=actor_id,
+            company_id=company_id,
+        )
+        self._session.flush()
+        return self._to_submission_view(submission)

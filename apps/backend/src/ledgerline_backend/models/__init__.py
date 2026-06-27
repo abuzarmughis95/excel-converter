@@ -24,6 +24,7 @@ from ledgerline_backend.models.organisation import Organisation
 from ledgerline_backend.models.refresh_token import RefreshToken
 from ledgerline_backend.models.sync import SyncEvent
 from ledgerline_backend.models.user import User
+from ledgerline_backend.models.vat_submission import VatReturnSubmission
 from ledgerline_backend.models.workbook import Sheet, Workbook
 
 __all__ = [
@@ -45,5 +46,6 @@ __all__ = [
     "SyncEvent",
     "User",
     "UserCredential",
+    "VatReturnSubmission",
     "Workbook",
 ]

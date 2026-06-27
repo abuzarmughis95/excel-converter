@@ -33,6 +33,7 @@ import type {
   PeriodStatus,
   ProfitAndLossResponse,
   VatReturnResponse,
+  VatSubmissionResponse,
   ReconcilableLineResponse,
   MatchSuggestionResponse,
   ReconciliationSummaryResponse,
@@ -317,6 +318,34 @@ export class ApiClient {
     return this.request<VatReturnResponse>({
       method: 'GET',
       path: `/companies/${companyId}/vat-return`,
+      auth: true,
+    });
+  }
+
+  listVatSubmissions(companyId: string): Promise<VatSubmissionResponse[]> {
+    return this.request<VatSubmissionResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/vat-submissions`,
+      auth: true,
+    });
+  }
+
+  finaliseVatReturn(
+    companyId: string,
+    periodStart: string,
+    periodEnd: string,
+    reference: string,
+    lockPeriod: boolean,
+  ): Promise<VatSubmissionResponse> {
+    return this.request<VatSubmissionResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/vat-submissions`,
+      body: {
+        period_start: periodStart,
+        period_end: periodEnd,
+        reference,
+        lock_period: lockPeriod,
+      },
       auth: true,
     });
   }

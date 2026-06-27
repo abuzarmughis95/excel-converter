@@ -16,7 +16,11 @@ from pydantic import BaseModel, Field, field_validator
 
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
 from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import ROLE_BOOKKEEPER, ROLE_READONLY
+from ledgerline_backend.models.membership import (
+    ROLE_ACCOUNTANT,
+    ROLE_BOOKKEEPER,
+    ROLE_READONLY,
+)
 from ledgerline_backend.security.rbac import require_company_role
 from ledgerline_backend.services.period_service import PeriodLockedError
 from ledgerline_backend.services.posting_service import (
@@ -30,12 +34,20 @@ from ledgerline_backend.services.posting_service import (
     UnbalancedJournalError,
 )
 from ledgerline_backend.services.reports_service import ReportsService
-from ledgerline_backend.services.vat_service import VatService
+from ledgerline_backend.services.vat_service import (
+    VatError,
+    VatReturnView,
+    VatService,
+    VatSubmissionExistsError,
+)
 
 router = APIRouter(prefix="/companies/{company_id}", tags=["journals"])
 
 ReadMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_READONLY))]
 WriteMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_BOOKKEEPER))]
+AccountantMembership = Annotated[
+    CompanyMembership, Depends(require_company_role(ROLE_ACCOUNTANT))
+]
 
 
 _VAT_CODES = {"SR", "RR", "ZR", "EX", "EC"}
@@ -412,4 +424,97 @@ def vat_return(
         box7_minor=vr.box7_minor,
         box8_minor=vr.box8_minor,
         box9_minor=vr.box9_minor,
+    )
+
+
+class FinaliseVatRequest(BaseModel):
+    period_start: dt.date
+    period_end: dt.date
+    reference: str = Field(min_length=1, max_length=64)
+    lock_period: bool = False
+
+
+class VatSubmissionResponse(BaseModel):
+    id: uuid.UUID
+    period_start: dt.date
+    period_end: dt.date
+    reference: str
+    finalised_at: dt.datetime
+    boxes: VatReturnResponse
+
+
+def _boxes(vr: VatReturnView) -> VatReturnResponse:
+    return VatReturnResponse(
+        box1_minor=vr.box1_minor,
+        box2_minor=vr.box2_minor,
+        box3_minor=vr.box3_minor,
+        box4_minor=vr.box4_minor,
+        box5_minor=vr.box5_minor,
+        box6_minor=vr.box6_minor,
+        box7_minor=vr.box7_minor,
+        box8_minor=vr.box8_minor,
+        box9_minor=vr.box9_minor,
+    )
+
+
+@router.get("/vat-submissions", response_model=list[VatSubmissionResponse])
+def list_vat_submissions(
+    company_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+) -> list[VatSubmissionResponse]:
+    """Finalised VAT return submissions for the company (most recent first)."""
+    subs = VatService(session).list_submissions(company_id)
+    return [
+        VatSubmissionResponse(
+            id=s.id,
+            period_start=s.period_start,
+            period_end=s.period_end,
+            reference=s.reference,
+            finalised_at=s.finalised_at,
+            boxes=_boxes(s.boxes),
+        )
+        for s in subs
+    ]
+
+
+@router.post(
+    "/vat-submissions",
+    response_model=VatSubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def finalise_vat_return(
+    company_id: uuid.UUID,
+    body: FinaliseVatRequest,
+    current_user: CurrentUserDep,
+    membership: AccountantMembership,
+    session: SessionDep,
+) -> VatSubmissionResponse:
+    """Finalise (snapshot) the VAT return for a period (accountant+).
+
+    Records the 9 boxes with a manual reference; optionally locks the covered
+    accounting period. This is the store+lock half of MTD; no HMRC call is made.
+    """
+    try:
+        sub = VatService(session).finalise(
+            actor_id=current_user.id,
+            company_id=company_id,
+            period_start=body.period_start,
+            period_end=body.period_end,
+            reference=body.reference,
+            lock_period=body.lock_period,
+        )
+    except VatSubmissionExistsError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except VatError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
+    return VatSubmissionResponse(
+        id=sub.id,
+        period_start=sub.period_start,
+        period_end=sub.period_end,
+        reference=sub.reference,
+        finalised_at=sub.finalised_at,
+        boxes=_boxes(sub.boxes),
     )

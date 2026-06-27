@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useEffect, type JSX } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,9 +25,13 @@ const VAT = {
   box9_minor: 0,
 };
 
+let finaliseCalled: Record<string, unknown> | null = null;
+let submitted = false;
+
 function stubFetch(): void {
-  const fetchMock = vi.fn((input: RequestInfo | URL): Promise<Response> => {
+  const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = input instanceof URL ? input.href : String(input);
+    const method = init?.method ?? 'GET';
     if (url.endsWith('/auth/login')) {
       return json(200, { access_token: 'a', refresh_token: 'r', token_type: 'bearer', expires_in: 900, mfa_required: false });
     }
@@ -38,6 +43,15 @@ function stubFetch(): void {
     }
     if (url.endsWith('/vat-return')) {
       return json(200, VAT);
+    }
+    if (url.endsWith('/vat-submissions') && method === 'POST') {
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      finaliseCalled = body;
+      submitted = true;
+      return json(201, { id: 's-1', period_start: '2026-01-01', period_end: '2026-03-31', reference: String(body['reference']), finalised_at: '2026-04-01T00:00:00Z', boxes: VAT });
+    }
+    if (url.endsWith('/vat-submissions') && method === 'GET') {
+      return json(200, submitted ? [{ id: 's-1', period_start: '2026-01-01', period_end: '2026-03-31', reference: 'HMRC-9', finalised_at: '2026-04-01T00:00:00Z', boxes: VAT }] : []);
     }
     return json(404, { detail: 'not found' });
   });
@@ -62,11 +76,14 @@ function PreAuth(): JSX.Element {
 }
 
 beforeEach(() => {
+  finaliseCalled = null;
+  submitted = false;
   stubFetch();
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('VatReturnScreen', () => {
@@ -86,5 +103,34 @@ describe('VatReturnScreen', () => {
     expect(screen.getByText('£1000.00')).toBeInTheDocument();
     expect(screen.getAllByText('£200.00').length).toBeGreaterThan(0);
     expect(screen.getByText('£100.00 payable to HMRC.')).toBeInTheDocument();
+  });
+
+  it('finalises the return with a reference and lock', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(
+      <AuthProvider>
+        <PreAuth />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Finalise return')).toBeInTheDocument();
+    });
+    await user.type(screen.getByPlaceholderText('HMRC receipt'), 'HMRC-9');
+    await user.click(screen.getByRole('button', { name: 'Finalise' }));
+
+    await waitFor(() => {
+      expect(finaliseCalled).toEqual({
+        period_start: '2026-01-01',
+        period_end: '2026-03-31',
+        reference: 'HMRC-9',
+        lock_period: true,
+      });
+    });
+    // The submitted return now appears in the history.
+    await waitFor(() => {
+      expect(screen.getByText('Submitted returns')).toBeInTheDocument();
+    });
   });
 });

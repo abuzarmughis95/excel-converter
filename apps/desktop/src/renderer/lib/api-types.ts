@@ -274,6 +274,15 @@ export interface VatReturnResponse {
   box9_minor: number;
 }
 
+export interface VatSubmissionResponse {
+  id: string;
+  period_start: string;
+  period_end: string;
+  reference: string;
+  finalised_at: string;
+  boxes: VatReturnResponse;
+}
+
 export type PeriodStatus = 'open' | 'soft_closed' | 'locked';
 
 export interface PeriodResponse {
