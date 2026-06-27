@@ -18,6 +18,7 @@ from ledgerline_backend.models.company import (
 )
 from ledgerline_backend.models.credential import UserCredential
 from ledgerline_backend.models.device import Device
+from ledgerline_backend.models.fixed_asset import FixedAsset
 from ledgerline_backend.models.journal import Journal, JournalLine
 from ledgerline_backend.models.membership import CompanyMembership
 from ledgerline_backend.models.organisation import Organisation
@@ -38,6 +39,7 @@ __all__ = [
     "Company",
     "CompanyMembership",
     "Device",
+    "FixedAsset",
     "Journal",
     "JournalLine",
     "Organisation",
