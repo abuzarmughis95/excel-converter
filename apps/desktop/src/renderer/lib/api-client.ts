@@ -29,6 +29,8 @@ import type {
   ImportResultResponse,
   JournalResponse,
   LoginRequest,
+  PeriodResponse,
+  PeriodStatus,
   ProfitAndLossResponse,
   VatReturnResponse,
   ReconcilableLineResponse,
@@ -287,6 +289,43 @@ export class ApiClient {
     return this.request<VatReturnResponse>({
       method: 'GET',
       path: `/companies/${companyId}/vat-return`,
+      auth: true,
+    });
+  }
+
+  // -- accounting periods ----------------------------------------------
+
+  listPeriods(companyId: string): Promise<PeriodResponse[]> {
+    return this.request<PeriodResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/periods`,
+      auth: true,
+    });
+  }
+
+  createPeriod(
+    companyId: string,
+    fiscalYear: number,
+    startsOn: string,
+    endsOn: string,
+  ): Promise<PeriodResponse> {
+    return this.request<PeriodResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/periods`,
+      body: { fiscal_year: fiscalYear, starts_on: startsOn, ends_on: endsOn },
+      auth: true,
+    });
+  }
+
+  setPeriodStatus(
+    companyId: string,
+    periodId: string,
+    statusValue: PeriodStatus,
+  ): Promise<PeriodResponse> {
+    return this.request<PeriodResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/periods/${periodId}/status`,
+      body: { status: statusValue },
       auth: true,
     });
   }

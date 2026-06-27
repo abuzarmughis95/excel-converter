@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 
 from ledgerline_backend.models import ChartOfAccount, Journal, JournalLine
 from ledgerline_backend.services.audit import record_audit
+from ledgerline_backend.services.period_service import PeriodService
 
 _ENGINE_TYPE = {
     "asset": AccountType.ASSET,
@@ -237,6 +238,10 @@ class PostingService:
         journal = self._get(company_id, journal_id)
         if journal.is_posted:
             raise AlreadyPostedError
+        # Block posting into a soft-closed or locked period.
+        PeriodService(self._session).assert_date_postable(
+            company_id, journal.journal_date
+        )
 
         lines = self._lines(journal_id)
         inputs = [
@@ -279,6 +284,11 @@ class PostingService:
         journal = self._get(company_id, journal_id)
         if not journal.is_posted:
             raise NotPostedError
+        # A locked/soft-closed period is final: correct via a reversing entry,
+        # not by unposting the original.
+        PeriodService(self._session).assert_date_postable(
+            company_id, journal.journal_date
+        )
 
         journal.is_posted = False
         journal.posted_at = None

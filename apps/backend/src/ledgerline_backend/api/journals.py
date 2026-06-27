@@ -18,6 +18,7 @@ from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
 from ledgerline_backend.models import CompanyMembership
 from ledgerline_backend.models.membership import ROLE_BOOKKEEPER, ROLE_READONLY
 from ledgerline_backend.security.rbac import require_company_role
+from ledgerline_backend.services.period_service import PeriodLockedError
 from ledgerline_backend.services.posting_service import (
     AlreadyPostedError,
     InvalidJournalError,
@@ -240,6 +241,8 @@ def post_journal(
         journal = PostingService(session).post(
             actor_id=current_user.id, company_id=company_id, journal_id=journal_id
         )
+    except PeriodLockedError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except (
         JournalNotFoundError,
         AlreadyPostedError,
@@ -267,6 +270,8 @@ def unpost_journal(
             journal_id=journal_id,
             reason=body.reason,
         )
+    except PeriodLockedError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except (JournalNotFoundError, NotPostedError, InvalidJournalError) as exc:
         _raise_journal_error(exc)
     return _journal_response(journal)

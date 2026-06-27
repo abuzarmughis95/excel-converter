@@ -10,6 +10,7 @@ import { ChartOfAccountsScreen } from './screens/ChartOfAccountsScreen.js';
 import { CompaniesScreen } from './screens/CompaniesScreen.js';
 import { DevicesScreen } from './screens/DevicesScreen.js';
 import { JournalEntryScreen } from './screens/JournalEntryScreen.js';
+import { PeriodsScreen } from './screens/PeriodsScreen.js';
 import { ReconciliationScreen } from './screens/ReconciliationScreen.js';
 import { ReportsScreen } from './screens/ReportsScreen.js';
 import { VatReturnScreen } from './screens/VatReturnScreen.js';
@@ -27,6 +28,7 @@ const SCREENS = [
   'Reconciliation',
   'Reports',
   'VAT',
+  'Periods',
   'Spreadsheet Bridge',
   'iXBRL Viewer',
   'Devices',
@@ -86,6 +88,9 @@ function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   }
   if (screen === 'VAT') {
     return <VatReturnScreen />;
+  }
+  if (screen === 'Periods') {
+    return <PeriodsScreen />;
   }
   if (screen === 'Devices') {
     return <DevicesScreen />;

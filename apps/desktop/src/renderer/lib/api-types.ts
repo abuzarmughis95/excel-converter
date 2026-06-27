@@ -261,3 +261,13 @@ export interface VatReturnResponse {
   box8_minor: number;
   box9_minor: number;
 }
+
+export type PeriodStatus = 'open' | 'soft_closed' | 'locked';
+
+export interface PeriodResponse {
+  id: string;
+  fiscal_year: number;
+  starts_on: string;
+  ends_on: string;
+  status: PeriodStatus;
+}

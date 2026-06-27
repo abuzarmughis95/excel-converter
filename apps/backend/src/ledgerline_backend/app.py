@@ -22,6 +22,7 @@ from ledgerline_backend.api import (
     devices,
     journals,
     meta,
+    periods,
     statements,
     workbooks,
 )
@@ -88,6 +89,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(workbooks.router, prefix="/v1")
     app.include_router(statements.router, prefix="/v1")
     app.include_router(cashbook.router, prefix="/v1")
+    app.include_router(periods.router, prefix="/v1")
 
     return app
 
