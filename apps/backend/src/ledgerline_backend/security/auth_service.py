@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from ledgerline_backend.config import Settings
 from ledgerline_backend.models import Organisation, RefreshToken, User, UserCredential
 from ledgerline_backend.security import passwords, tokens
+from ledgerline_backend.util.time import utcnow
 
 
 class AuthError(Exception):
@@ -68,8 +69,8 @@ class TokenPair:
     mfa_required: bool = False
 
 
-def _utcnow() -> dt.datetime:
-    return dt.datetime.now(tz=dt.UTC)
+# Backwards-compatible alias for the shared helper.
+_utcnow = utcnow
 
 
 def _as_utc(value: dt.datetime) -> dt.datetime:

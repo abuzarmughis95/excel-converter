@@ -9,19 +9,16 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 
-from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
-from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import (
-    ROLE_ACCOUNTANT,
-    ROLE_BOOKKEEPER,
-    ROLE_READONLY,
+from ledgerline_backend.api.membership_deps import (
+    AccountantMembership,
+    ReadMembership,
+    WriteMembership,
 )
-from ledgerline_backend.security.rbac import require_company_role
+from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
 from ledgerline_backend.services.period_service import PeriodLockedError
 from ledgerline_backend.services.posting_service import (
     AlreadyPostedError,
@@ -42,13 +39,6 @@ from ledgerline_backend.services.vat_service import (
 )
 
 router = APIRouter(prefix="/companies/{company_id}", tags=["journals"])
-
-ReadMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_READONLY))]
-WriteMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_BOOKKEEPER))]
-AccountantMembership = Annotated[
-    CompanyMembership, Depends(require_company_role(ROLE_ACCOUNTANT))
-]
-
 
 _VAT_CODES = {"SR", "RR", "ZR", "EX", "EC"}
 

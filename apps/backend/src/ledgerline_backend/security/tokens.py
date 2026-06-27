@@ -18,14 +18,15 @@ import uuid
 import jwt
 
 from ledgerline_backend.config import Settings
+from ledgerline_backend.util.time import utcnow
 
 
 class TokenError(Exception):
     """Raised when a token is invalid, expired, or malformed."""
 
 
-def _utcnow() -> dt.datetime:
-    return dt.datetime.now(tz=dt.UTC)
+# Backwards-compatible alias for the shared helper.
+_utcnow = utcnow
 
 
 def create_access_token(

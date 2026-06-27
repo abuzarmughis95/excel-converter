@@ -39,6 +39,7 @@ from ledgerline_backend.models import (
     VatReturnSubmission,
 )
 from ledgerline_backend.services.audit import record_audit
+from ledgerline_backend.util.time import utcnow
 
 # VAT codes that are EC acquisitions/dispatches (feed boxes 2/8/9).
 _EC_CODES = {"EC"}
@@ -46,8 +47,8 @@ _EC_CODES = {"EC"}
 _TAXABLE_CODES = {"SR", "RR", "ZR", "EX", "EC"}
 
 
-def _utcnow() -> dt.datetime:
-    return dt.datetime.now(tz=dt.UTC)
+# Backwards-compatible alias for the shared helper.
+_utcnow = utcnow
 
 
 class VatError(Exception):

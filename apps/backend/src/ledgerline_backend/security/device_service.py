@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from ledgerline_backend.config import Settings
 from ledgerline_backend.models import AllocationCounter, Device
 from ledgerline_backend.models.allocation import NODE_ID_COUNTER
+from ledgerline_backend.util.time import utcnow
 
 # The server itself owns node 0; devices are allocated from 1 upward.
 SERVER_NODE_ID = 0
@@ -49,8 +50,8 @@ class RegisteredDevice:
     entitlement_exp: dt.datetime
 
 
-def _utcnow() -> dt.datetime:
-    return dt.datetime.now(tz=dt.UTC)
+# Backwards-compatible alias for the shared helper.
+_utcnow = utcnow
 
 
 def _as_utc(value: dt.datetime) -> dt.datetime:

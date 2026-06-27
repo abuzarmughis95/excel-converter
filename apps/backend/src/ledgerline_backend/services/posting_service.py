@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 from ledgerline_backend.models import ChartOfAccount, Journal, JournalLine
 from ledgerline_backend.services.audit import record_audit
 from ledgerline_backend.services.period_service import PeriodService
+from ledgerline_backend.util.time import utcnow
 
 _ENGINE_TYPE = {
     "asset": AccountType.ASSET,
@@ -100,8 +101,8 @@ class JournalLineView:
     narrative: str | None
 
 
-def _utcnow() -> dt.datetime:
-    return dt.datetime.now(tz=dt.UTC)
+# Backwards-compatible alias for the shared helper.
+_utcnow = utcnow
 
 
 class PostingService:

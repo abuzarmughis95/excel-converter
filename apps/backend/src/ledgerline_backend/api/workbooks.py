@@ -7,15 +7,12 @@ endpoint is what the desktop app's Ctrl+S calls; it persists the whole workbook.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
+from ledgerline_backend.api.membership_deps import ReadMembership, WriteMembership
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
-from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import ROLE_BOOKKEEPER, ROLE_READONLY
-from ledgerline_backend.security.rbac import require_company_role
 from ledgerline_backend.services.workbook_service import (
     MAX_COLS,
     MAX_ROWS,
@@ -29,8 +26,6 @@ from ledgerline_backend.services.workbook_service import (
 
 router = APIRouter(prefix="/companies/{company_id}/workbook", tags=["workbook"])
 
-ReadMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_READONLY))]
-WriteMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_BOOKKEEPER))]
 
 
 class SheetModel(BaseModel):

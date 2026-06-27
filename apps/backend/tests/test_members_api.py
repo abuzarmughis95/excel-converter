@@ -8,6 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
+from tests.helpers import auth_headers as _auth
+from tests.helpers import register_user as _register
 
 from ledgerline_backend.models import Organisation
 
@@ -21,16 +23,8 @@ def org_id(app_engine: Engine) -> uuid.UUID:
         return org.id
 
 
-def _register(client: TestClient, org_id: uuid.UUID, email: str) -> None:
-    client.post(
-        "/v1/auth/register",
-        json={"org_id": str(org_id), "email": email, "display_name": "U", "password": "password123"},
-    )
 
 
-def _auth(client: TestClient, email: str) -> dict[str, str]:
-    login = client.post("/v1/auth/login", json={"email": email, "password": "password123"}).json()
-    return {"Authorization": f"Bearer {login['access_token']}"}
 
 
 def _company(client: TestClient, headers: dict[str, str]) -> str:
