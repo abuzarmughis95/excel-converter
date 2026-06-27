@@ -1158,3 +1158,27 @@ body {
 .assets-table {
   margin-top: 0.5rem;
 }
+
+/* -- Payroll -- */
+.payroll-employee-form,
+.payroll-run-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.5rem;
+}
+
+.payroll-employee-form .ui-button,
+.payroll-run-form .ui-button {
+  height: fit-content;
+}
+
+.payroll-employees {
+  margin-bottom: 1.5rem;
+}
+
+.payroll-run-heading {
+  font-size: 0.95rem;
+  margin: 0.5rem 0 0.75rem;
+}

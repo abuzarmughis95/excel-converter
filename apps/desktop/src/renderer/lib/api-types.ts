@@ -354,3 +354,52 @@ export interface HmrcSubmitResponse {
   charge_ref_number: string | null;
   received_at: string;
 }
+
+export interface EmployeeResponse {
+  id: string;
+  name: string;
+  annual_salary_minor: number;
+  tax_code: string;
+  ni_category: string;
+  pay_frequency: string;
+  active: boolean;
+}
+
+export interface CreateEmployeeRequest {
+  name: string;
+  annual_salary_minor: number;
+  tax_code: string;
+  ni_category: string;
+  pay_frequency: string;
+}
+
+export interface PayslipResponse {
+  id: string;
+  employee_id: string;
+  employee_name: string;
+  period_label: string;
+  pay_date: string;
+  gross_minor: number;
+  income_tax_minor: number;
+  employee_ni_minor: number;
+  employer_ni_minor: number;
+  net_minor: number;
+  journal_id: string | null;
+}
+
+export interface RunPayrollRequest {
+  period_label: string;
+  pay_date: string;
+  wages_account_id: string;
+  employer_ni_account_id: string;
+  liability_account_id: string;
+  net_pay_account_id: string;
+}
+
+export interface PayRunResponse {
+  period_label: string;
+  journal_id: string;
+  payslips: PayslipResponse[];
+  total_gross_minor: number;
+  total_net_minor: number;
+}
