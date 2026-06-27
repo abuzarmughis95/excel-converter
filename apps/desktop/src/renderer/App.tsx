@@ -16,6 +16,7 @@ import { ReportsScreen } from './screens/ReportsScreen.js';
 import { VatReturnScreen } from './screens/VatReturnScreen.js';
 import { SpreadsheetScreen } from './screens/SpreadsheetScreen.js';
 import { StatementsScreen } from './screens/StatementsScreen.js';
+import { ThemeProvider, useTheme } from './theme/ThemeContext.js';
 
 /** Navigation targets. Several screens are wired to the backend; others are placeholders. */
 const SCREENS = [
@@ -102,6 +103,23 @@ function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   );
 }
 
+/** Light/dark theme toggle shown in the app header. */
+function ThemeToggle(): JSX.Element {
+  const { resolved, toggle } = useTheme();
+  const goingDark = resolved === 'light';
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={toggle}
+      aria-label={goingDark ? 'Switch to dark mode' : 'Switch to light mode'}
+      title={goingDark ? 'Switch to dark mode' : 'Switch to light mode'}
+    >
+      {goingDark ? '🌙 Dark' : '☀️ Light'}
+    </button>
+  );
+}
+
 /** The authenticated application shell. */
 function AppShell(): JSX.Element {
   const { user, logout } = useAuth();
@@ -134,6 +152,7 @@ function AppShell(): JSX.Element {
         <header className="app-header">
           <h2>{active}</h2>
           <div className="app-header-right">
+            <ThemeToggle />
             {user !== null && <span className="app-user">{user.email}</span>}
             {appInfo !== null && (
               <span className="app-version">
@@ -165,8 +184,10 @@ function AuthGate(): JSX.Element {
 
 export function App(): JSX.Element {
   return (
-    <AuthProvider>
-      <AuthGate />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AuthGate />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

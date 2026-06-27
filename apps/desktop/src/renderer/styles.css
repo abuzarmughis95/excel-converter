@@ -1,9 +1,87 @@
+/*
+ * Theme — parrot green & white.
+ *
+ * Light is the default. Dark mode is opted into with <html data-theme="dark">
+ * (set by ThemeContext) and is also the fallback when the OS prefers dark and
+ * no explicit choice has been made. Every colour is a variable so screens never
+ * hardcode a value — re-theming happens here.
+ */
 :root {
-  --color-bg: #0f1419;
-  --color-surface: #1a2332;
-  --color-text: #e6edf3;
-  --color-accent: #2f81f7;
+  /* Parrot-green brand ramp. */
+  --color-accent: #2eb872; /* parrot green */
+  --color-accent-strong: #25965d;
+  --color-accent-soft: rgba(46, 184, 114, 0.14);
+  --color-on-accent: #ffffff;
+
+  /* Light surfaces. */
+  --color-bg: #ffffff;
+  --color-surface: #f1f6f2;
+  --color-surface-2: #e6eee9;
+  --color-text: #14241b;
+  --color-text-muted: #5a6b61;
+  --color-border: #d4e2da;
+
+  /* Status colours. */
+  --color-danger: #d23b3b;
+  --color-danger-soft: rgba(210, 59, 59, 0.14);
+  --color-success: #2eb872;
+  --color-success-soft: rgba(46, 184, 114, 0.16);
+  --color-warning: #c8881a;
+  --color-warning-soft: rgba(200, 136, 26, 0.16);
+
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  color-scheme: light;
+}
+
+/* Dark theme: deep green-tinted charcoal with the same parrot-green accent. */
+[data-theme='dark'] {
+  --color-accent: #36d989; /* brighter parrot green for contrast on dark */
+  --color-accent-strong: #2eb872;
+  --color-accent-soft: rgba(54, 217, 137, 0.16);
+  --color-on-accent: #04130b;
+
+  --color-bg: #0e1713;
+  --color-surface: #16241d;
+  --color-surface-2: #1f3228;
+  --color-text: #e8f3ec;
+  --color-text-muted: #93a89c;
+  --color-border: #284237;
+
+  --color-danger: #ff6b6b;
+  --color-danger-soft: rgba(255, 107, 107, 0.16);
+  --color-success: #3fdd92;
+  --color-success-soft: rgba(63, 221, 146, 0.16);
+  --color-warning: #e0b341;
+  --color-warning-soft: rgba(224, 179, 65, 0.16);
+
+  color-scheme: dark;
+}
+
+/* Follow the OS when the user has not chosen explicitly. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    --color-accent: #36d989;
+    --color-accent-strong: #2eb872;
+    --color-accent-soft: rgba(54, 217, 137, 0.16);
+    --color-on-accent: #04130b;
+
+    --color-bg: #0e1713;
+    --color-surface: #16241d;
+    --color-surface-2: #1f3228;
+    --color-text: #e8f3ec;
+    --color-text-muted: #93a89c;
+    --color-border: #284237;
+
+    --color-danger: #ff6b6b;
+    --color-danger-soft: rgba(255, 107, 107, 0.16);
+    --color-success: #3fdd92;
+    --color-success-soft: rgba(63, 221, 146, 0.16);
+    --color-warning: #e0b341;
+    --color-warning-soft: rgba(224, 179, 65, 0.16);
+
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -53,6 +131,12 @@ body {
 
 .app-nav button[aria-current='page'] {
   background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.app-nav button:hover:not([aria-current='page']) {
+  background: var(--color-accent-soft);
 }
 
 .app-main {
@@ -63,7 +147,7 @@ body {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 0.75rem;
 }
 
@@ -85,7 +169,7 @@ body {
 
 .app-logout {
   background: transparent;
-  border: 1px solid var(--color-surface);
+  border: 1px solid var(--color-border);
   color: inherit;
   border-radius: 6px;
   padding: 0.35rem 0.75rem;
@@ -95,6 +179,22 @@ body {
 
 .app-logout:hover {
   border-color: var(--color-accent);
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: inherit;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.theme-toggle:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
 /* -- Login screen -- */
@@ -135,7 +235,7 @@ body {
 .login-field input {
   padding: 0.6rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -147,7 +247,7 @@ body {
 }
 
 .login-error {
-  color: #ff6b6b;
+  color: var(--color-danger);
   font-size: 0.85rem;
   margin: 0;
 }
@@ -158,7 +258,7 @@ body {
   border: none;
   border-radius: 6px;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -179,7 +279,7 @@ body {
   border: none;
   border-radius: 6px;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   font: inherit;
   cursor: pointer;
 }
@@ -194,13 +294,13 @@ body {
 .devices-table td {
   text-align: left;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .devices-table button {
   background: transparent;
-  border: 1px solid #ff6b6b;
-  color: #ff6b6b;
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
   border-radius: 6px;
   padding: 0.25rem 0.6rem;
   cursor: pointer;
@@ -212,7 +312,7 @@ body {
   margin: 0 0 1rem;
   padding: 0.4rem 0.6rem;
   font-size: 0.85rem;
-  background: rgba(47, 129, 247, 0.12);
+  background: var(--color-accent-soft);
   border-left: 3px solid var(--color-accent);
   border-radius: 4px;
 }
@@ -228,7 +328,7 @@ body {
 .company-create select {
   padding: 0.55rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -244,7 +344,7 @@ body {
   border: none;
   border-radius: 6px;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   font: inherit;
   cursor: pointer;
 }
@@ -297,7 +397,7 @@ body {
 .journal-header-row input {
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -321,7 +421,7 @@ body {
 .journal-grid th,
 .journal-grid td {
   padding: 0.3rem 0.5rem;
-  border-bottom: 1px solid var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .journal-grid th.num,
@@ -335,7 +435,7 @@ body {
   width: 100%;
   padding: 0.4rem 0.5rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -347,13 +447,13 @@ body {
 
 .journal-grid tfoot td {
   font-weight: 600;
-  border-top: 2px solid var(--color-surface);
+  border-top: 2px solid var(--color-border);
 }
 
 .journal-row-remove {
   background: transparent;
   border: none;
-  color: #ff6b6b;
+  color: var(--color-danger);
   font-size: 1.2rem;
   cursor: pointer;
   line-height: 1;
@@ -368,12 +468,12 @@ body {
 }
 
 .journal-balance-bar .balanced {
-  color: #3fb950;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .journal-balance-bar .unbalanced {
-  color: #d29922;
+  color: var(--color-warning);
   font-weight: 600;
 }
 
@@ -383,7 +483,7 @@ body {
   border: none;
   border-radius: 6px;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -422,7 +522,7 @@ body {
 
 .journal-recent li {
   padding: 0.35rem 0;
-  border-bottom: 1px solid var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .devices-table th.num,
@@ -446,7 +546,7 @@ body {
 
 .sheet-toolbar button {
   padding: 0.4rem 0.85rem;
-  border: 1px solid var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
   color: inherit;
@@ -457,7 +557,7 @@ body {
 .sheet-save {
   background: var(--color-accent) !important;
   border-color: var(--color-accent) !important;
-  color: #fff !important;
+  color: var(--color-on-accent) !important;
   font-weight: 600;
 }
 
@@ -475,7 +575,7 @@ body {
 .sheet-grid-wrap {
   flex: 1;
   overflow: auto;
-  border: 1px solid var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
 }
 
@@ -507,7 +607,7 @@ body {
 
 .sheet-grid td {
   padding: 0;
-  border: 1px solid var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .sheet-grid td input {
@@ -587,7 +687,7 @@ body {
   border: none;
   border-radius: 6px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -653,14 +753,14 @@ body {
   flex-wrap: wrap;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .statements-import select,
 .cashbook-screen select {
   padding: 0.45rem 0.6rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -672,7 +772,7 @@ body {
   border: none;
   border-radius: 6px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   font: inherit;
   cursor: pointer;
 }
@@ -687,7 +787,7 @@ body {
 
 .cashbook-bank {
   padding: 0.5rem 1rem;
-  border: 1px solid var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
   color: inherit;
@@ -697,7 +797,7 @@ body {
 
 .cashbook-bank.active {
   border-color: var(--color-accent);
-  background: rgba(47, 129, 247, 0.15);
+  background: var(--color-accent-soft);
 }
 
 /* -- Reports -- */
@@ -709,7 +809,7 @@ body {
 
 .reports-tabs button {
   padding: 0.5rem 1.25rem;
-  border: 1px solid var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
   color: inherit;
@@ -720,7 +820,7 @@ body {
 .reports-tabs button.active {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 .report-table {
@@ -732,7 +832,7 @@ body {
 
 .report-table td {
   padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .report-table td.num {
@@ -750,7 +850,7 @@ body {
 
 .report-total td {
   font-weight: 600;
-  border-top: 1px solid var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .report-grand td {
@@ -772,7 +872,7 @@ body {
 .recon-controls input {
   padding: 0.45rem 0.6rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -822,7 +922,7 @@ body {
 .periods-create input {
   padding: 0.4rem 0.55rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
@@ -837,18 +937,18 @@ body {
 }
 
 .period-open {
-  background: rgba(63, 185, 80, 0.2);
-  color: #3fb950;
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
 .period-soft_closed {
-  background: rgba(210, 153, 34, 0.2);
-  color: #d29922;
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
 
 .period-locked {
-  background: rgba(248, 81, 73, 0.2);
-  color: #f85149;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
 .period-action {
@@ -893,20 +993,20 @@ body {
 }
 
 .recon-conf-exact {
-  background: rgba(63, 185, 80, 0.2);
-  color: #3fb950;
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
 .recon-conf-amount {
-  background: rgba(210, 153, 34, 0.2);
-  color: #d29922;
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
 
 /* -- VAT finalise -- */
 .vat-finalise {
   margin-top: 1.75rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .vat-finalise h3,
@@ -926,7 +1026,7 @@ body {
 .vat-finalise-row input[type='text'] {
   padding: 0.4rem 0.55rem;
   border-radius: 6px;
-  border: 1px solid #2c3a4f;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font: inherit;
