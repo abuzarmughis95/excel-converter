@@ -9,15 +9,12 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
+from ledgerline_backend.api.membership_deps import AccountantMembership, ReadMembership
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
-from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import ROLE_ACCOUNTANT, ROLE_READONLY
-from ledgerline_backend.security.rbac import require_company_role
 from ledgerline_backend.services.period_service import (
     InvalidPeriodError,
     PeriodNotFoundError,
@@ -27,10 +24,6 @@ from ledgerline_backend.services.period_service import (
 
 router = APIRouter(prefix="/companies/{company_id}/periods", tags=["periods"])
 
-ReadMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_READONLY))]
-ManageMembership = Annotated[
-    CompanyMembership, Depends(require_company_role(ROLE_ACCOUNTANT))
-]
 
 _VALID_TARGETS = {"open", "soft_closed", "locked"}
 
@@ -77,7 +70,7 @@ def create_period(
     company_id: uuid.UUID,
     body: CreatePeriodRequest,
     current_user: CurrentUserDep,
-    membership: ManageMembership,
+    membership: AccountantMembership,
     session: SessionDep,
 ) -> PeriodResponse:
     try:
@@ -107,7 +100,7 @@ def set_period_status(
     period_id: uuid.UUID,
     body: SetStatusRequest,
     current_user: CurrentUserDep,
-    membership: ManageMembership,
+    membership: AccountantMembership,
     session: SessionDep,
 ) -> PeriodResponse:
     if body.status not in _VALID_TARGETS:

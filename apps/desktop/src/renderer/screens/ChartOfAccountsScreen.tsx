@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'reac
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { errorMessage } from '../lib/errors.js';
 import type { AccountResponse } from '../lib/api-types.js';
 
 const ACCOUNT_TYPES = ['asset', 'liability', 'equity', 'income', 'expense'] as const;
@@ -35,7 +36,7 @@ export function ChartOfAccountsScreen(): JSX.Element {
     try {
       setAccounts(await api.listAccounts(companyId));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load accounts.');
+      setError(errorMessage(err, 'Failed to load accounts.'));
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ export function ChartOfAccountsScreen(): JSX.Element {
       setName('');
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create account.');
+      setError(errorMessage(err, 'Failed to create account.'));
     } finally {
       setBusy(false);
     }
@@ -75,18 +76,14 @@ export function ChartOfAccountsScreen(): JSX.Element {
       await api.deactivateAccount(companyId, accountId);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to deactivate account.');
+      setError(errorMessage(err, 'Failed to deactivate account.'));
     } finally {
       setBusy(false);
     }
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   return (

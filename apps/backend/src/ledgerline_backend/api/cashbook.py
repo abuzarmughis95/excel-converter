@@ -8,15 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
+from ledgerline_backend.api.membership_deps import ReadMembership, WriteMembership
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
-from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import ROLE_BOOKKEEPER, ROLE_READONLY
-from ledgerline_backend.security.rbac import require_company_role
 from ledgerline_backend.services.cashbook_service import (
     BankAccountNotFoundError,
     BankAccountView,
@@ -38,9 +35,6 @@ from ledgerline_backend.services.reconciliation_service import (
 )
 
 router = APIRouter(prefix="/companies/{company_id}/bank-accounts", tags=["cashbook"])
-
-ReadMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_READONLY))]
-WriteMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_BOOKKEEPER))]
 
 
 class CreateBankAccountRequest(BaseModel):

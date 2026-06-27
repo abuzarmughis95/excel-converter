@@ -7,15 +7,12 @@ list, read, or modify companies they belong to, and their role bounds writes.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
+from ledgerline_backend.api.membership_deps import OwnerMembership
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
-from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import ROLE_OWNER
-from ledgerline_backend.security.rbac import require_company_role
 from ledgerline_backend.services.company_service import (
     CompanyAccessDeniedError,
     CompanyNotFoundError,
@@ -31,7 +28,6 @@ from ledgerline_backend.services.company_service import (
 router = APIRouter(prefix="/companies", tags=["companies"])
 
 # Owner-only dependency for member-management routes.
-OwnerMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_OWNER))]
 
 
 class CreateCompanyRequest(BaseModel):

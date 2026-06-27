@@ -2,14 +2,10 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { errorMessage } from '../lib/errors.js';
 import type { BalanceSheetResponse, ProfitAndLossResponse, ReportLine } from '../lib/api-types.js';
-
-function money(minor: number): string {
-  const sign = minor < 0 ? '-' : '';
-  const abs = Math.abs(minor);
-  return `£${sign}${Math.trunc(abs / 100).toString()}.${(abs % 100).toString().padStart(2, '0')}`;
-}
+import { money } from '../lib/money.js';
 
 type Tab = 'pnl' | 'bs';
 
@@ -56,7 +52,7 @@ export function ReportsScreen(): JSX.Element {
       setPnl(p);
       setBs(b);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load reports.');
+      setError(errorMessage(err, 'Failed to load reports.'));
     }
   }, [api, companyId]);
 
@@ -65,11 +61,7 @@ export function ReportsScreen(): JSX.Element {
   }, [reload]);
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   return (

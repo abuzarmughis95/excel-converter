@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { Button, Form, TextField } from '../components/ui/index.js';
 import type { PeriodResponse, PeriodStatus } from '../lib/api-types.js';
+import { errorMessage } from '../lib/errors.js';
 
 const STATUS_LABEL: Record<PeriodStatus, string> = {
   open: 'Open',
@@ -47,7 +49,7 @@ export function PeriodsScreen(): JSX.Element {
     try {
       setPeriods(await api.listPeriods(companyId));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load periods.');
+      setError(errorMessage(err, 'Failed to load periods.'));
     }
   }, [api, companyId]);
 
@@ -65,7 +67,7 @@ export function PeriodsScreen(): JSX.Element {
       await api.createPeriod(companyId, Number(year), startsOn, endsOn);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create the period.');
+      setError(errorMessage(err, 'Failed to create the period.'));
     } finally {
       setBusy(false);
     }
@@ -84,65 +86,38 @@ export function PeriodsScreen(): JSX.Element {
       await api.setPeriodStatus(companyId, period.id, target);
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to change the status.');
+      setError(errorMessage(err, 'Failed to change the status.'));
     } finally {
       setBusy(false);
     }
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   return (
     <section aria-live="polite" className="periods-screen">
-      <form
+      <Form
         className="periods-create"
-        onSubmit={(e) => {
-          e.preventDefault();
+        onSubmit={() => {
           void create();
         }}
       >
-        <label>
-          Fiscal year{' '}
-          <input
-            type="number"
-            value={year}
-            onChange={(e) => {
-              setYear(e.target.value);
-            }}
-            min={1900}
-            max={3000}
-          />
-        </label>
-        <label>
-          Starts{' '}
-          <input
-            type="date"
-            value={startsOn}
-            onChange={(e) => {
-              setStartsOn(e.target.value);
-            }}
-          />
-        </label>
-        <label>
-          Ends{' '}
-          <input
-            type="date"
-            value={endsOn}
-            onChange={(e) => {
-              setEndsOn(e.target.value);
-            }}
-          />
-        </label>
-        <button type="submit" disabled={busy}>
+        <TextField
+          label="Fiscal year"
+          type="number"
+          value={year}
+          onValueChange={setYear}
+          min={1900}
+          max={3000}
+        />
+        <TextField label="Starts" type="date" value={startsOn} onValueChange={setStartsOn} />
+        <TextField label="Ends" type="date" value={endsOn} onValueChange={setEndsOn} />
+        <Button type="submit" disabled={busy}>
           Add period
-        </button>
-      </form>
+        </Button>
+      </Form>
 
       {error !== null && (
         <p className="login-error" role="alert">

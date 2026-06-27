@@ -2,19 +2,17 @@ import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'reac
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
-import { ApiError } from '../lib/api-client.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { errorMessage } from '../lib/errors.js';
 import type {
   AccountResponse,
   BankAccountResponse,
   BankStatementLineResponse,
 } from '../lib/api-types.js';
+import { formatMinorPlain } from '../lib/money.js';
 
 function formatMinor(minor: number | null): string {
-  if (minor === null || minor === 0) {
-    return '';
-  }
-  const abs = Math.abs(minor);
-  return `${Math.trunc(abs / 100).toString()}.${(abs % 100).toString().padStart(2, '0')}`;
+  return formatMinorPlain(minor, { blankZero: true });
 }
 
 /**
@@ -57,7 +55,7 @@ export function CashbookScreen(): JSX.Element {
         setSelected(first.id);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load.');
+      setError(errorMessage(err, 'Failed to load.'));
     }
   }, [api, companyId, selected]);
 
@@ -69,7 +67,7 @@ export function CashbookScreen(): JSX.Element {
     try {
       setLines(await api.listStatementLines(companyId, selected));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load lines.');
+      setError(errorMessage(err, 'Failed to load lines.'));
     }
   }, [api, companyId, selected]);
 
@@ -98,7 +96,7 @@ export function CashbookScreen(): JSX.Element {
       await reloadBanks();
       setSelected(created.id);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create bank account.');
+      setError(errorMessage(err, 'Failed to create bank account.'));
     } finally {
       setBusy(false);
     }
@@ -119,18 +117,14 @@ export function CashbookScreen(): JSX.Element {
       await api.postStatementLine(companyId, selected, lineId, contraId);
       await reloadLines();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to post line.');
+      setError(errorMessage(err, 'Failed to post line.'));
     } finally {
       setBusy(false);
     }
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   return (

@@ -2,8 +2,14 @@ import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
 import { ApiError } from '../lib/api-client.js';
+import { errorMessage } from '../lib/errors.js';
 import type { AccountResponse, JournalResponse, TrialBalanceRow } from '../lib/api-types.js';
+import {
+  formatMinorPlain as formatMinor,
+  parseMajorToMinor as toMinor,
+} from '../lib/money.js';
 
 /** A single editable grid row in the journal entry form. */
 interface GridRow {
@@ -11,27 +17,6 @@ interface GridRow {
   accountId: string;
   debit: string;
   credit: string;
-}
-
-/** Parse a "12.34" style major-unit string into integer minor units (pence). */
-function toMinor(input: string): number {
-  const cleaned = input.trim().replace(/,/g, '');
-  if (cleaned === '') {
-    return 0;
-  }
-  if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) {
-    return Number.NaN;
-  }
-  const [whole, frac = ''] = cleaned.split('.');
-  return Number(whole) * 100 + Number(frac.padEnd(2, '0'));
-}
-
-function formatMinor(minor: number): string {
-  const sign = minor < 0 ? '-' : '';
-  const abs = Math.abs(minor);
-  const whole = Math.trunc(abs / 100).toString();
-  const frac = (abs % 100).toString().padStart(2, '0');
-  return `${sign}${whole}.${frac}`;
 }
 
 function blankRow(key: number): GridRow {
@@ -74,7 +59,7 @@ export function JournalEntryScreen(): JSX.Element {
       setJournals(jrnls);
       setTrialBalance(tb);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load.');
+      setError(errorMessage(err, 'Failed to load.'));
     }
   }, [api, companyId]);
 
@@ -162,7 +147,7 @@ export function JournalEntryScreen(): JSX.Element {
       await api.unpostJournal(companyId, journalId, reason.trim());
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to unpost.');
+      setError(errorMessage(err, 'Failed to unpost.'));
     } finally {
       setBusy(false);
     }
@@ -191,18 +176,14 @@ export function JournalEntryScreen(): JSX.Element {
       );
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to reverse.');
+      setError(errorMessage(err, 'Failed to reverse.'));
     } finally {
       setBusy(false);
     }
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   if (accounts.length === 0) {

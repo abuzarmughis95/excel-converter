@@ -2,8 +2,11 @@ import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
+import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
 import { ApiError } from '../lib/api-client.js';
+import { errorMessage } from '../lib/errors.js';
 import type { SheetData } from '../lib/api-types.js';
+import { formatMinorPlain } from '../lib/money.js';
 
 const DEFAULT_ROWS = 20;
 const DEFAULT_COLS = 8;
@@ -101,7 +104,7 @@ export function SpreadsheetScreen(): JSX.Element {
       setActive(0);
       setDirty(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load workbook.');
+      setError(errorMessage(err, 'Failed to load workbook.'));
     }
   }, [api, companyId]);
 
@@ -126,7 +129,7 @@ export function SpreadsheetScreen(): JSX.Element {
         setStatus(null);
       }, 1500);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to save workbook.');
+      setError(errorMessage(err, 'Failed to save workbook.'));
     } finally {
       setSaving(false);
     }
@@ -200,15 +203,7 @@ export function SpreadsheetScreen(): JSX.Element {
     setDirty(true);
   }
 
-  /** Format integer minor units as a plain "1234.56" major-unit string. */
-  function fromMinor(minor: number): string {
-    if (minor === 0) {
-      return '';
-    }
-    const sign = minor < 0 ? '-' : '';
-    const abs = Math.abs(minor);
-    return `${sign}${Math.trunc(abs / 100).toString()}.${(abs % 100).toString().padStart(2, '0')}`;
-  }
+  const fromMinor = (minor: number): string => formatMinorPlain(minor, { blankZero: true });
 
   /** Upload a PDF, extract it, and drop the rows into a NEW editable sheet. */
   async function importPdf(file: File): Promise<void> {
@@ -249,7 +244,7 @@ export function SpreadsheetScreen(): JSX.Element {
       if (err instanceof ApiError && err.status === 503) {
         setError('PDF import is not configured on the server (no OpenAI API key).');
       } else {
-        setError(err instanceof ApiError ? err.message : 'Failed to import the PDF.');
+        setError(errorMessage(err, 'Failed to import the PDF.'));
       }
     } finally {
       setImporting(false);
@@ -257,11 +252,7 @@ export function SpreadsheetScreen(): JSX.Element {
   }
 
   if (activeCompany === null) {
-    return (
-      <section aria-live="polite">
-        <p>Select or create a company first (Companies screen).</p>
-      </section>
-    );
+    return <CompanyRequiredNotice />;
   }
 
   const current = sheets[active];

@@ -11,13 +11,11 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel
 
+from ledgerline_backend.api.membership_deps import WriteMembership
 from ledgerline_backend.dependencies import SettingsDep
-from ledgerline_backend.models import CompanyMembership
-from ledgerline_backend.models.membership import ROLE_BOOKKEEPER
-from ledgerline_backend.security.rbac import require_company_role
 from ledgerline_backend.services.statement_extraction import (
     ExtractedStatement,
     ModelClient,
@@ -28,7 +26,6 @@ from ledgerline_backend.services.statement_extraction import (
 
 router = APIRouter(prefix="/companies/{company_id}/statements", tags=["statements"])
 
-WriteMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_BOOKKEEPER))]
 
 
 class StatementLineResponse(BaseModel):
