@@ -232,3 +232,20 @@ export interface BankStatementLineResponse {
   balance_minor: number | null;
   is_posted: boolean;
 }
+
+export interface ReconcilableLineResponse {
+  journal_line_id: string;
+  journal_id: string;
+  line_date: string | null;
+  narrative: string | null;
+  amount_minor: number;
+  reconciled: boolean;
+}
+
+export interface ReconciliationSummaryResponse {
+  ledger_balance_minor: number;
+  reconciled_balance_minor: number;
+  unreconciled_count: number;
+  statement_balance_minor: number | null;
+  difference_minor: number | null;
+}

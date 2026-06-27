@@ -10,7 +10,7 @@ import datetime as dt
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
@@ -29,6 +29,13 @@ from ledgerline_backend.services.cashbook_service import (
     StatementLineView,
 )
 from ledgerline_backend.services.posting_service import InvalidJournalError
+from ledgerline_backend.services.reconciliation_service import (
+    BankAccountNotFoundError as ReconBankNotFound,
+)
+from ledgerline_backend.services.reconciliation_service import (
+    JournalLineNotFoundError,
+    ReconciliationService,
+)
 
 router = APIRouter(prefix="/companies/{company_id}/bank-accounts", tags=["cashbook"])
 
@@ -237,3 +244,115 @@ def post_statement_line(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc) or "Invalid posting"
         ) from exc
     return PostLineResponse(journal_id=journal_id)
+
+
+# -- reconciliation -------------------------------------------------------
+
+
+class ReconcilableLineResponse(BaseModel):
+    journal_line_id: uuid.UUID
+    journal_id: uuid.UUID
+    line_date: str | None
+    narrative: str | None
+    amount_minor: int
+    reconciled: bool
+
+
+class SetReconciledRequest(BaseModel):
+    reconciled: bool
+
+
+class ReconciliationSummaryResponse(BaseModel):
+    ledger_balance_minor: int
+    reconciled_balance_minor: int
+    unreconciled_count: int
+    statement_balance_minor: int | None
+    difference_minor: int | None
+
+
+@router.get("/{bank_account_id}/reconciliation", response_model=list[ReconcilableLineResponse])
+def list_reconcilable_lines(
+    company_id: uuid.UUID,
+    bank_account_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+) -> list[ReconcilableLineResponse]:
+    """List the bank account's ledger entries with their reconciled state."""
+    try:
+        lines = ReconciliationService(session).list_lines(company_id, bank_account_id)
+    except ReconBankNotFound as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bank account not found"
+        ) from exc
+    return [
+        ReconcilableLineResponse(
+            journal_line_id=line.journal_line_id,
+            journal_id=line.journal_id,
+            line_date=line.line_date,
+            narrative=line.narrative,
+            amount_minor=line.amount_minor,
+            reconciled=line.reconciled,
+        )
+        for line in lines
+    ]
+
+
+@router.post(
+    "/{bank_account_id}/reconciliation/{journal_line_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def set_line_reconciled(
+    company_id: uuid.UUID,
+    bank_account_id: uuid.UUID,
+    journal_line_id: uuid.UUID,
+    body: SetReconciledRequest,
+    current_user: CurrentUserDep,
+    membership: WriteMembership,
+    session: SessionDep,
+) -> Response:
+    """Tick or untick a ledger entry as reconciled (bookkeeper+)."""
+    try:
+        ReconciliationService(session).set_reconciled(
+            actor_id=current_user.id,
+            company_id=company_id,
+            bank_account_id=bank_account_id,
+            journal_line_id=journal_line_id,
+            reconciled=body.reconciled,
+        )
+    except ReconBankNotFound as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bank account not found"
+        ) from exc
+    except JournalLineNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ledger entry not found"
+        ) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    "/{bank_account_id}/reconciliation-summary", response_model=ReconciliationSummaryResponse
+)
+def reconciliation_summary(
+    company_id: uuid.UUID,
+    bank_account_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+    statement_balance_minor: int | None = None,
+) -> ReconciliationSummaryResponse:
+    """Reconciliation summary; pass statement_balance_minor to see the difference."""
+    try:
+        summary = ReconciliationService(session).summary(
+            company_id, bank_account_id, statement_balance_minor=statement_balance_minor
+        )
+    except ReconBankNotFound as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bank account not found"
+        ) from exc
+    return ReconciliationSummaryResponse(
+        ledger_balance_minor=summary.ledger_balance_minor,
+        reconciled_balance_minor=summary.reconciled_balance_minor,
+        unreconciled_count=summary.unreconciled_count,
+        statement_balance_minor=summary.statement_balance_minor,
+        difference_minor=summary.difference_minor,
+    )

@@ -6,7 +6,11 @@ Importing this package registers every model on the shared declarative
 
 from ledgerline_backend.models.allocation import AllocationCounter
 from ledgerline_backend.models.audit import AuditLog
-from ledgerline_backend.models.bank import BankAccount, BankStatementLine
+from ledgerline_backend.models.bank import (
+    BankAccount,
+    BankReconciliationMark,
+    BankStatementLine,
+)
 from ledgerline_backend.models.company import (
     AccountingPeriod,
     ChartOfAccount,
@@ -27,6 +31,7 @@ __all__ = [
     "AllocationCounter",
     "AuditLog",
     "BankAccount",
+    "BankReconciliationMark",
     "BankStatementLine",
     "ChartOfAccount",
     "Company",

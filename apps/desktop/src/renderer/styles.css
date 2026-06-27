@@ -758,3 +758,33 @@ body {
   border-top: 2px solid var(--color-accent);
   padding-top: 0.6rem;
 }
+
+/* -- Reconciliation -- */
+.recon-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.recon-controls select,
+.recon-controls input {
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #2c3a4f;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.recon-summary {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}

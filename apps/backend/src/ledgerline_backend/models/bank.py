@@ -75,3 +75,30 @@ class BankStatementLine(AuditableBase):
     # Set once the line has been posted to a journal.
     is_posted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
     posted_journal_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True)
+
+
+class BankReconciliationMark(AuditableBase):
+    """Records that a journal line (hitting the bank GL account) is reconciled.
+
+    Reconciliation is recorded out-of-band rather than mutating the (immutable)
+    journal line: one mark per (bank_account, journal_line) means that ledger
+    entry has been ticked off against the bank statement.
+    """
+
+    __tablename__ = "bank_reconciliation_marks"
+    __table_args__ = (
+        UniqueConstraint(
+            "bank_account_id", "journal_line_id", name="uq_recon_mark_account_line"
+        ),
+    )
+
+    bank_account_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("bank_accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    journal_line_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("journal_lines.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )

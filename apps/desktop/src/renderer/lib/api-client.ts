@@ -30,6 +30,8 @@ import type {
   JournalResponse,
   LoginRequest,
   ProfitAndLossResponse,
+  ReconcilableLineResponse,
+  ReconciliationSummaryResponse,
   RegisterDeviceRequest,
   RegisterDeviceResponse,
   SaveWorkbookRequest,
@@ -382,6 +384,49 @@ export class ApiClient {
       method: 'POST',
       path: `/companies/${companyId}/bank-accounts/${bankAccountId}/lines/${lineId}/post`,
       body: { contra_account_id: contraAccountId },
+      auth: true,
+    });
+  }
+
+  // -- reconciliation ---------------------------------------------------
+
+  listReconcilableLines(
+    companyId: string,
+    bankAccountId: string,
+  ): Promise<ReconcilableLineResponse[]> {
+    return this.request<ReconcilableLineResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/reconciliation`,
+      auth: true,
+    });
+  }
+
+  async setLineReconciled(
+    companyId: string,
+    bankAccountId: string,
+    journalLineId: string,
+    reconciled: boolean,
+  ): Promise<void> {
+    await this.request<undefined>({
+      method: 'POST',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/reconciliation/${journalLineId}`,
+      body: { reconciled },
+      auth: true,
+    });
+  }
+
+  reconciliationSummary(
+    companyId: string,
+    bankAccountId: string,
+    statementBalanceMinor: number | null,
+  ): Promise<ReconciliationSummaryResponse> {
+    const query =
+      statementBalanceMinor !== null
+        ? `?statement_balance_minor=${String(statementBalanceMinor)}`
+        : '';
+    return this.request<ReconciliationSummaryResponse>({
+      method: 'GET',
+      path: `/companies/${companyId}/bank-accounts/${bankAccountId}/reconciliation-summary${query}`,
       auth: true,
     });
   }
