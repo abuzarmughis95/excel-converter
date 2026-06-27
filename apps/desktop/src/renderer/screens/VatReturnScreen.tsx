@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
+import { Button, Checkbox } from '../components/ui/index.js';
 import { errorMessage } from '../lib/errors.js';
 import type { VatReturnResponse, VatSubmissionResponse } from '../lib/api-types.js';
 import { money } from '../lib/money.js';
@@ -175,19 +176,10 @@ export function VatReturnScreen(): JSX.Element {
               }}
             />
           </label>
-          <label className="vat-lock-check">
-            <input
-              type="checkbox"
-              checked={lockPeriod}
-              onChange={(e) => {
-                setLockPeriod(e.target.checked);
-              }}
-            />{' '}
-            Lock period
-          </label>
-          <button type="submit" disabled={busy}>
+          <Checkbox label="Lock period" checked={lockPeriod} onCheckedChange={setLockPeriod} />
+          <Button type="submit" disabled={busy}>
             Finalise
-          </button>
+          </Button>
         </div>
         {status !== null && <p className="balanced">{status}</p>}
       </form>

@@ -1,5 +1,6 @@
-import { useState, type FormEvent, type JSX } from 'react';
+import { useState, type JSX } from 'react';
 
+import { Button, Form, TextField } from '../components/ui/index.js';
 import { ApiError } from '../lib/api-client.js';
 import { useAuth } from './AuthContext.js';
 
@@ -15,8 +16,7 @@ export function LoginScreen(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function onSubmit(event: FormEvent): Promise<void> {
-    event.preventDefault();
+  async function onSubmit(): Promise<void> {
     setError(null);
     setSubmitting(true);
     try {
@@ -38,41 +38,32 @@ export function LoginScreen(): JSX.Element {
 
   return (
     <div className="login-screen">
-      <form
+      <Form
         className="login-card"
-        onSubmit={(e) => {
-          void onSubmit(e);
-        }}
         aria-label="Sign in"
+        onSubmit={() => {
+          void onSubmit();
+        }}
       >
         <h1 className="login-brand">Ledgerline</h1>
         <p className="login-subtitle">Sign in to continue</p>
 
-        <label className="login-field">
-          <span>Email</span>
-          <input
-            type="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-          />
-        </label>
-
-        <label className="login-field">
-          <span>Password</span>
-          <input
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-          />
-        </label>
+        <TextField
+          label="Email"
+          type="email"
+          autoComplete="username"
+          required
+          value={email}
+          onValueChange={setEmail}
+        />
+        <TextField
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={password}
+          onValueChange={setPassword}
+        />
 
         {error !== null && (
           <p className="login-error" role="alert">
@@ -80,10 +71,10 @@ export function LoginScreen(): JSX.Element {
           </p>
         )}
 
-        <button type="submit" className="login-submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting}>
           {submitting ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
+        </Button>
+      </Form>
     </div>
   );
 }

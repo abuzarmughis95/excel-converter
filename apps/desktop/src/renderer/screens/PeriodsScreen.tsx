@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 import { useAuth } from '../auth/AuthContext.js';
 import { useCompanies } from '../company/CompanyContext.js';
 import { CompanyRequiredNotice } from '../components/CompanyRequiredNotice.js';
-import { errorMessage } from '../lib/errors.js';
+import { Button, Form, TextField } from '../components/ui/index.js';
 import type { PeriodResponse, PeriodStatus } from '../lib/api-types.js';
+import { errorMessage } from '../lib/errors.js';
 
 const STATUS_LABEL: Record<PeriodStatus, string> = {
   open: 'Open',
@@ -97,49 +98,26 @@ export function PeriodsScreen(): JSX.Element {
 
   return (
     <section aria-live="polite" className="periods-screen">
-      <form
+      <Form
         className="periods-create"
-        onSubmit={(e) => {
-          e.preventDefault();
+        onSubmit={() => {
           void create();
         }}
       >
-        <label>
-          Fiscal year{' '}
-          <input
-            type="number"
-            value={year}
-            onChange={(e) => {
-              setYear(e.target.value);
-            }}
-            min={1900}
-            max={3000}
-          />
-        </label>
-        <label>
-          Starts{' '}
-          <input
-            type="date"
-            value={startsOn}
-            onChange={(e) => {
-              setStartsOn(e.target.value);
-            }}
-          />
-        </label>
-        <label>
-          Ends{' '}
-          <input
-            type="date"
-            value={endsOn}
-            onChange={(e) => {
-              setEndsOn(e.target.value);
-            }}
-          />
-        </label>
-        <button type="submit" disabled={busy}>
+        <TextField
+          label="Fiscal year"
+          type="number"
+          value={year}
+          onValueChange={setYear}
+          min={1900}
+          max={3000}
+        />
+        <TextField label="Starts" type="date" value={startsOn} onValueChange={setStartsOn} />
+        <TextField label="Ends" type="date" value={endsOn} onValueChange={setEndsOn} />
+        <Button type="submit" disabled={busy}>
           Add period
-        </button>
-      </form>
+        </Button>
+      </Form>
 
       {error !== null && (
         <p className="login-error" role="alert">

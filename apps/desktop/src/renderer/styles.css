@@ -919,13 +919,8 @@ body {
   margin-bottom: 1.25rem;
 }
 
-.periods-create input {
-  padding: 0.4rem 0.55rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font: inherit;
+.periods-create .ui-field {
+  flex: 0 0 auto;
 }
 
 .period-status {
@@ -1040,4 +1035,145 @@ body {
 
 .vat-history {
   margin-top: 1.75rem;
+}
+
+/* ============================================================
+ * Generic UI kit (components/ui)
+ * All controls use the theme variables so they re-skin with the theme.
+ * ============================================================ */
+
+.ui-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.ui-field-label {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ui-field-label-required::after {
+  content: ' *';
+  color: var(--color-danger);
+}
+
+.ui-field-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.ui-field-error {
+  font-size: 0.78rem;
+  color: var(--color-danger);
+}
+
+.ui-input,
+.ui-select {
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  width: 100%;
+}
+
+.ui-input:focus,
+.ui-select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.ui-input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.ui-input:disabled,
+.ui-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ui-checkbox,
+.ui-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.ui-radiogroup {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ui-radiogroup-inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ui-radiogroup legend {
+  padding: 0;
+  margin-bottom: 0.35rem;
+}
+
+/* Buttons */
+.ui-button {
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ui-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ui-button-primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.ui-button-primary:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+}
+
+.ui-button-secondary,
+.ui-button-ghost {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.ui-button-secondary:hover:not(:disabled),
+.ui-button-ghost:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.ui-button-danger {
+  background: transparent;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.ui-button-danger:hover:not(:disabled) {
+  background: var(--color-danger-soft);
 }
