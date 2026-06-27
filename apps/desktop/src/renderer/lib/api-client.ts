@@ -16,6 +16,8 @@ import { API_BASE_URL } from './config.js';
 import type {
   CompanyResponse,
   CreateCompanyRequest,
+  AccountResponse,
+  CreateAccountRequest,
   DeviceResponse,
   LoginRequest,
   RegisterDeviceRequest,
@@ -183,6 +185,33 @@ export class ApiClient {
       method: 'POST',
       path: '/companies',
       body,
+      auth: true,
+    });
+  }
+
+  // -- chart of accounts ------------------------------------------------
+
+  listAccounts(companyId: string): Promise<AccountResponse[]> {
+    return this.request<AccountResponse[]>({
+      method: 'GET',
+      path: `/companies/${companyId}/accounts`,
+      auth: true,
+    });
+  }
+
+  createAccount(companyId: string, body: CreateAccountRequest): Promise<AccountResponse> {
+    return this.request<AccountResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/accounts`,
+      body,
+      auth: true,
+    });
+  }
+
+  deactivateAccount(companyId: string, accountId: string): Promise<AccountResponse> {
+    return this.request<AccountResponse>({
+      method: 'POST',
+      path: `/companies/${companyId}/accounts/${accountId}/deactivate`,
       auth: true,
     });
   }

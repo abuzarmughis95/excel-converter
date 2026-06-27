@@ -5,6 +5,7 @@ import type { AppInfo } from '../shared/ipc-contract.js';
 import { AuthProvider, useAuth } from './auth/AuthContext.js';
 import { LoginScreen } from './auth/LoginScreen.js';
 import { CompanyProvider, useCompanies } from './company/CompanyContext.js';
+import { ChartOfAccountsScreen } from './screens/ChartOfAccountsScreen.js';
 import { CompaniesScreen } from './screens/CompaniesScreen.js';
 import { DevicesScreen } from './screens/DevicesScreen.js';
 
@@ -50,6 +51,9 @@ function useAppInfo(): AppInfo | null {
 function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   if (screen === 'Companies') {
     return <CompaniesScreen />;
+  }
+  if (screen === 'Bookkeeping') {
+    return <ChartOfAccountsScreen />;
   }
   if (screen === 'Devices') {
     return <DevicesScreen />;

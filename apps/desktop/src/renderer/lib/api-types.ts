@@ -66,3 +66,21 @@ export interface CreateCompanyRequest {
   base_currency?: string;
   accounts_type?: string;
 }
+
+export interface AccountResponse {
+  id: string;
+  code: string;
+  name: string;
+  account_type: string;
+  normal_balance: string;
+  is_control: boolean;
+  control_kind: string | null;
+  is_active: boolean;
+}
+
+export interface CreateAccountRequest {
+  code: string;
+  name: string;
+  account_type: string;
+  control_kind?: string | null;
+}

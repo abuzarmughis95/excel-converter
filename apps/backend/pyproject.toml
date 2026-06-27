@@ -15,6 +15,12 @@ dependencies = [
     "argon2-cffi>=23.1,<24.0",
     "pyjwt>=2.9,<3.0",
     "email-validator>=2.2,<3.0",
+    # NOTE: the backend also requires `ledgerline-engine`, the canonical
+    # accounting engine, installed editable from the monorepo so the backend
+    # uses the SAME engine as the desktop sidecar (one source of truth for the
+    # numbers). It is a sibling path dependency, installed separately:
+    #     pip install -e ../../engine
+    # It is intentionally not listed here as a PyPI requirement.
 ]
 
 [project.optional-dependencies]
