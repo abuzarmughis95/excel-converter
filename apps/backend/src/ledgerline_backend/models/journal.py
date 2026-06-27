@@ -83,3 +83,10 @@ class JournalLine(AuditableBase):
     base_debit_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     base_credit_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     narrative: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    # VAT treatment of this line, used to derive the VAT return. When set, this
+    # line is the taxable supply: vat_code names the treatment, and the line's
+    # amount is the NET; vat_minor is the VAT charged/reclaimed on it.
+    # 'SR' (standard) | 'RR' (reduced) | 'ZR' (zero) | 'EX' (exempt) |
+    # 'EC' (EC acquisition/dispatch) | None (outside VAT).
+    vat_code: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    vat_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)

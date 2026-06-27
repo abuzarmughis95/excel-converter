@@ -788,3 +788,24 @@ body {
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
+
+/* -- VAT return -- */
+.vat-title {
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+}
+
+.vat-table {
+  max-width: 640px;
+}
+
+.vat-box-no {
+  font-weight: 600;
+  white-space: nowrap;
+  width: 4.5rem;
+}
+
+.vat-conclusion {
+  margin-top: 1rem;
+  font-weight: 600;
+}

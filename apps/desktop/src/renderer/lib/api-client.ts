@@ -30,6 +30,7 @@ import type {
   JournalResponse,
   LoginRequest,
   ProfitAndLossResponse,
+  VatReturnResponse,
   ReconcilableLineResponse,
   ReconciliationSummaryResponse,
   RegisterDeviceRequest,
@@ -278,6 +279,14 @@ export class ApiClient {
     return this.request<BalanceSheetResponse>({
       method: 'GET',
       path: `/companies/${companyId}/balance-sheet`,
+      auth: true,
+    });
+  }
+
+  vatReturn(companyId: string): Promise<VatReturnResponse> {
+    return this.request<VatReturnResponse>({
+      method: 'GET',
+      path: `/companies/${companyId}/vat-return`,
       auth: true,
     });
   }

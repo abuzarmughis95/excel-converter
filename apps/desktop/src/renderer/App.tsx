@@ -12,6 +12,7 @@ import { DevicesScreen } from './screens/DevicesScreen.js';
 import { JournalEntryScreen } from './screens/JournalEntryScreen.js';
 import { ReconciliationScreen } from './screens/ReconciliationScreen.js';
 import { ReportsScreen } from './screens/ReportsScreen.js';
+import { VatReturnScreen } from './screens/VatReturnScreen.js';
 import { SpreadsheetScreen } from './screens/SpreadsheetScreen.js';
 import { StatementsScreen } from './screens/StatementsScreen.js';
 
@@ -82,6 +83,9 @@ function ScreenContent({ screen }: { screen: Screen }): JSX.Element {
   }
   if (screen === 'Reports') {
     return <ReportsScreen />;
+  }
+  if (screen === 'VAT') {
+    return <VatReturnScreen />;
   }
   if (screen === 'Devices') {
     return <DevicesScreen />;

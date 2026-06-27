@@ -249,3 +249,15 @@ export interface ReconciliationSummaryResponse {
   statement_balance_minor: number | null;
   difference_minor: number | null;
 }
+
+export interface VatReturnResponse {
+  box1_minor: number;
+  box2_minor: number;
+  box3_minor: number;
+  box4_minor: number;
+  box5_minor: number;
+  box6_minor: number;
+  box7_minor: number;
+  box8_minor: number;
+  box9_minor: number;
+}

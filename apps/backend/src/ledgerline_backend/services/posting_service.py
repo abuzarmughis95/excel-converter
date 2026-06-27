@@ -68,6 +68,10 @@ class LineInput:
     debit_minor: int = 0
     credit_minor: int = 0
     narrative: str | None = None
+    # Optional VAT treatment: when vat_code is set, this line is the taxable
+    # supply (its amount is the NET) and vat_minor is the VAT on it.
+    vat_code: str | None = None
+    vat_minor: int = 0
 
 
 @dataclass(frozen=True)
@@ -211,6 +215,8 @@ class PostingService:
                     base_debit_minor=ln.debit_minor,
                     base_credit_minor=ln.credit_minor,
                     narrative=ln.narrative,
+                    vat_code=ln.vat_code,
+                    vat_minor=ln.vat_minor,
                 )
             )
         self._session.flush()

@@ -12,7 +12,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from ledgerline_backend.dependencies import CurrentUserDep, SessionDep
 from ledgerline_backend.models import CompanyMembership
@@ -29,6 +29,7 @@ from ledgerline_backend.services.posting_service import (
     UnbalancedJournalError,
 )
 from ledgerline_backend.services.reports_service import ReportsService
+from ledgerline_backend.services.vat_service import VatService
 
 router = APIRouter(prefix="/companies/{company_id}", tags=["journals"])
 
@@ -36,11 +37,23 @@ ReadMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_
 WriteMembership = Annotated[CompanyMembership, Depends(require_company_role(ROLE_BOOKKEEPER))]
 
 
+_VAT_CODES = {"SR", "RR", "ZR", "EX", "EC"}
+
+
 class JournalLineInput(BaseModel):
     account_id: uuid.UUID
     debit_minor: int = Field(ge=0, default=0)
     credit_minor: int = Field(ge=0, default=0)
     narrative: str | None = Field(default=None, max_length=512)
+    vat_code: str | None = Field(default=None, max_length=8)
+    vat_minor: int = Field(ge=0, default=0)
+
+    @field_validator("vat_code")
+    @classmethod
+    def _check_vat_code(cls, value: str | None) -> str | None:
+        if value is not None and value not in _VAT_CODES:
+            raise ValueError(f"unknown VAT code {value!r}")
+        return value
 
 
 class CreateJournalRequest(BaseModel):
@@ -176,6 +189,8 @@ def create_journal(
                     debit_minor=ln.debit_minor,
                     credit_minor=ln.credit_minor,
                     narrative=ln.narrative,
+                    vat_code=ln.vat_code,
+                    vat_minor=ln.vat_minor,
                 )
                 for ln in body.lines
             ],
@@ -320,4 +335,37 @@ def balance_sheet(
         total_liabilities_minor=bs.total_liabilities_minor,
         total_equity_minor=bs.total_equity_minor,
         retained_earnings_minor=bs.retained_earnings_minor,
+    )
+
+
+class VatReturnResponse(BaseModel):
+    box1_minor: int
+    box2_minor: int
+    box3_minor: int
+    box4_minor: int
+    box5_minor: int
+    box6_minor: int
+    box7_minor: int
+    box8_minor: int
+    box9_minor: int
+
+
+@router.get("/vat-return", response_model=VatReturnResponse)
+def vat_return(
+    company_id: uuid.UUID,
+    membership: ReadMembership,
+    session: SessionDep,
+) -> VatReturnResponse:
+    """The 9-box UK VAT return over posted journals, computed by the engine."""
+    vr = VatService(session).vat_return(company_id)
+    return VatReturnResponse(
+        box1_minor=vr.box1_minor,
+        box2_minor=vr.box2_minor,
+        box3_minor=vr.box3_minor,
+        box4_minor=vr.box4_minor,
+        box5_minor=vr.box5_minor,
+        box6_minor=vr.box6_minor,
+        box7_minor=vr.box7_minor,
+        box8_minor=vr.box8_minor,
+        box9_minor=vr.box9_minor,
     )

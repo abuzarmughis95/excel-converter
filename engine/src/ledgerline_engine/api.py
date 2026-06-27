@@ -39,6 +39,12 @@ from ledgerline_engine.reports import (
     balance_sheet,
     profit_and_loss,
 )
+from ledgerline_engine.vat import (
+    VatDirection,
+    VatEntry,
+    VatReturn,
+    compute_vat_return,
+)
 
 __all__ = [
     "Account",
@@ -62,7 +68,11 @@ __all__ = [
     "Rounding",
     "TrialBalanceRow",
     "UnbalancedPostingError",
+    "VatDirection",
+    "VatEntry",
+    "VatReturn",
     "balance_sheet",
+    "compute_vat_return",
     "normal_balance_for",
     "profit_and_loss",
     "sum_money",
